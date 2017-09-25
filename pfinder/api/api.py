@@ -1,12 +1,20 @@
+import json
 from rest_framework import generics, permissions
 from django.db.models import Q
 from rest_framework.filters import  SearchFilter, OrderingFilter
-
+from django.conf import settings
 from .serializers import UserSerializer, PostSerializer, PhotoSerializer, CarSerializer, SiteSerializer, CitySerializer, StateSerializer
 from .models import User, Post, Photo, Car, Site, City, State
 from .permissions import PostAuthorCanEditPermission
-from rest_framework import viewsets
+from rest_framework import views, viewsets
 import rest_framework_filters as filters
+from rest_framework.authentication import SessionAuthentication, BaseAuthentication
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login, logout
+from rest_framework.authtoken.models import Token
 import django_filters
 
 class UserMixin(object):
@@ -83,6 +91,9 @@ class CarList(generics.ListAPIView):
     serializer_class = CarSerializer
     filter_backends = [SearchFilter]
     search_fields= ['listing_title']
+    permission_classes = [
+        PostAuthorCanEditPermission
+    ]
     #filter_class = TitleFilter
     def get_queryset(self, *args, **kwargs):
         queryset_list = Car.objects.all()
@@ -102,12 +113,13 @@ class CarList(generics.ListAPIView):
 
         if query_price is not None:
             queryset_list = queryset_list.filter(
-                Q(price__icontains=query_price)
+                Q(price__lt=query_price)
             ).distinct()
         if query_city is not None:
             queryset_list = queryset_list.filter(
                 Q(city__icontains=query_city)
             ).distinct()
+
         if query_state is not None:
             queryset_list = queryset_list.filter(
                 Q(state__icontains=query_state)
@@ -120,12 +132,12 @@ class CarList(generics.ListAPIView):
 
         if query_mileage is not None:
             queryset_list = queryset_list.filter(
-                Q(mileage__icontains=query_mileage)
+                Q(mileage__gt=query_mileage)
             ).distinct()
 
         if query_year is not None:
             queryset_list = queryset_list.filter(
-                Q(listing_year__icontains=query_year)
+                Q(listing_year__lt=query_year)
             ).distinct()
 
         if query_model is not None:
@@ -138,7 +150,10 @@ class CarList(generics.ListAPIView):
 class CarDetail(generics.ListAPIView):
     model = Car
     serializer_class = CarSerializer
-
+    search_fields= ['listing_title']
+    permission_classes = [
+        PostAuthorCanEditPermission
+    ]
     def get_queryset(self):
         vin = self.kwargs['vin']
         return Car.objects.filter(vin=vin)
@@ -163,10 +178,34 @@ class CityList(generics.ListAPIView):
     model = City
     queryset = City.objects.all()
     serializer_class = CitySerializer
+    search_fields= ['listing_title']
+    permission_classes = [
+        PostAuthorCanEditPermission
+    ]
 
 class StateList(generics.ListAPIView):
     model = State
     queryset = State.objects.all()
     serializer_class = StateSerializer
+    search_fields= ['listing_title']
+    permission_classes = [
+        PostAuthorCanEditPermission
+    ]
 
+def logout_user(request):
+    return render(request, '', {})
 
+def login_form(request):
+    return render(request, '', {})
+class LoginView(generics.ListAPIView):
+    def get_auth_token(request):
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(username=username, password=password)
+        print(user)
+        if user is not None:
+            if user.is_active:
+                token, created = Token.objects.get_or_create(user=user)
+                request.session['auth'] = token.key
+                return redirect('', request)
+        return redirect(settings.LOGIN_URL, request)

@@ -133,6 +133,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django_extensions',
     'rest_framework',
+    'rest_framework.authtoken',
     'pfinder.api',
     # Uncomment the next line to enable the admin:
     'django.contrib.admin',
@@ -178,3 +179,13 @@ SILENCED_SYSTEM_CHECKS = ['urls.W002']
 
 # !!!!!This is for demonstration only!!!!!
 AUTHENTICATION_BACKENDS = ['pfinder.api.auth.AlwaysRootBackend']
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        #'rest_framework.authentication.BasicAuthentication',
+        #'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES':(
+        'rest_framework.permissions.IsAuthenticated',
+    )
+}

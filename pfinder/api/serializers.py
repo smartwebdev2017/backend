@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from .models import User, Post, Photo, Car, Site, City, State
-
+from django.contrib.auth import update_session_auth_hash
 
 class UserSerializer(serializers.ModelSerializer):
     posts = serializers.HyperlinkedIdentityField(view_name='userpost-list', lookup_field='username')

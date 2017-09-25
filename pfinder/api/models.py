@@ -1,4 +1,8 @@
 from django.db import models
+from django.conf import settings
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from rest_framework.authtoken.models import Token
 
 from django.contrib.auth.models import AbstractUser
 
@@ -36,7 +40,7 @@ class Car(models.Model):
     city = models.CharField(max_length=20)
     state = models.CharField(max_length=10)
     listing_date = models.CharField(max_length=30)
-    price = models.CharField(max_length=11)
+    price = models.IntegerField(max_length=11)
     cond = models.CharField(max_length=10)
     seller_type = models.CharField(max_length=15)
     vhr_link = models.CharField(max_length=255)
@@ -60,3 +64,8 @@ class City(models.Model):
 
 class State(models.Model):
     state_name = models.CharField(max_length=20)
+
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_auth_token(sender, instance=None, created=False, **kwargs):
+    if created:
+        Token.objects.create(user=instance)
