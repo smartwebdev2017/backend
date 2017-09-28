@@ -2,7 +2,7 @@ from django.conf.urls import url, include
 
 from .api import UserList, UserDetail
 from .api import PostList, PostDetail, UserPostList
-from .api import PhotoList, PhotoDetail, PostPhotoList, CarList, CarDetail, SiteList, CityList, StateList
+from .api import PhotoList, PhotoDetail, PostPhotoList, CarList, CarDetail, SiteList, CityList, StateList, BuildSheetView
 
 user_urls = [
     url(r'^/(?P<username>[0-9a-zA-Z_-]+)/posts$', UserPostList.as_view(), name='userpost-list'),
@@ -37,6 +37,10 @@ photo_urls = [
     url(r'^$', PhotoList.as_view(), name='photo-list')
 ]
 
+bsf_urls = [
+    url(r'^$', BuildSheetView.as_view(), name='bsf-detail')
+]
+
 urlpatterns = [
     url(r'^users', include(user_urls)),
     url(r'^posts', include(post_urls)),
@@ -44,5 +48,6 @@ urlpatterns = [
     url(r'^cars', include(cars_urls)),
     url(r'^sites', include(sites_urls)),
     url(r'^cities', include(cities_urls)),
-    url(r'^states', include(states_urls))
+    url(r'^states', include(states_urls)),
+    url(r'^bsf', include(bsf_urls))
 ]

@@ -65,6 +65,21 @@ class City(models.Model):
 class State(models.Model):
     state_name = models.CharField(max_length=20)
 
+class BSF(models.Model):
+    vin = models.CharField(max_length=17)
+    msrp = models.IntegerField(max_length=11)
+    warranty_start = models.CharField(max_length=20)
+    model_year = models.IntegerField(max_length=4)
+    model_detail = models.TextField()
+    color = models.TextField()
+    production_month = models.CharField(max_length=7)
+    interior = models.TextField()
+
+class BSF_Options(models.Model):
+    bsf = models.ForeignKey('bsf')
+    code = models.CharField(max_length=11)
+    value = models.TextField()
+
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import User, Post, Photo, Car, Site, City, State
+from .models import User, Post, Photo, Car, Site, City, State, BSF, BSF_Options
 from django.contrib.auth import update_session_auth_hash
 
 class UserSerializer(serializers.ModelSerializer):
@@ -55,4 +55,17 @@ class StateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = State
+        fields = '__all__'
+
+class BuildSheetSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = BSF
+        fields = '__all__'
+
+class BuildSheetOptionsSerializer(serializers.ModelSerializer):
+    bsf = serializers.PrimaryKeyRelatedField(queryset=BSF.objects.all())
+
+    class Meta:
+        model = BSF_Options
         fields = '__all__'
