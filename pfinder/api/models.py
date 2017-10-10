@@ -3,7 +3,6 @@ from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
-
 from django.contrib.auth.models import AbstractUser
 
 
@@ -27,10 +26,61 @@ class Site(models.Model):
     created = models.CharField(max_length=255)
     updated = models.CharField(max_length=255)
 
+
+
+class BSF(models.Model):
+    #id = models.ManyToManyField(BSF_Options, related_name='options')
+    vin = models.CharField(max_length=17)
+    msrp = models.IntegerField(max_length=11)
+    warranty_start = models.CharField(max_length=20)
+    model_year = models.IntegerField(max_length=4)
+    model_detail = models.TextField()
+    color = models.TextField()
+    production_month = models.CharField(max_length=7)
+    interior = models.TextField()
+
+class BSF_Options(models.Model):
+    bsf = models.ForeignKey(BSF, related_name='options')
+    code = models.CharField(max_length=11)
+    value = models.TextField()
+
+class VHF(models.Model):
+    title_check = models.TextField()
+    accident_check = models.TextField(blank=True, null=True)
+    owners = models.TextField(blank=True, null=True)
+    recall_count = models.IntegerField(max_length=11)
+
+class VDF(models.Model):
+    model_number = models.CharField(max_length=17)
+    year = models.IntegerField(max_length = 4)
+    model_detail = models.CharField(max_length=30)
+    region = models.CharField(max_length=4)
+
+class PCF(models.Model):
+    longhood = models.IntegerField(max_length = 1)
+    widebody = models.IntegerField(max_length = 1)
+    pts = models.IntegerField(max_length = 1)
+    pccb = models.IntegerField(max_length = 1)
+    color = models.CharField(max_length=15)
+    body_type = models.CharField(max_length=15)
+    air_cooled = models.IntegerField(max_length=1)
+    gap_to_msrp = models.FloatField()
+    listing_age = models.IntegerField(max_length=1)
+    lwb_seats = models.IntegerField(max_length=1)
+    auto_trans = models.CharField(max_length = 15)
+    option_code = models.TextField()
+    option_description = models.TextField()
+    placeholder = models.IntegerField(max_length = 2)
+    produced_usa = models.IntegerField(max_length=11)
+    produced_globally = models.IntegerField(max_length=11)
+    same_counts = models.IntegerField(max_length=11)
 class Car(models.Model):
     #id = models.IntegerField()
     site = models.ForeignKey(Site, related_name='sites')
-    vin = models.CharField(max_length=17)
+    vin = models.ForeignKey(BSF)
+
+    #vin = models.ForeignKey(BSF, related_name='')
+    vin_code = models.CharField(max_length=17, default='')
     listing_make = models.CharField(max_length=20)
     listing_model = models.CharField(max_length=30)
     listing_trim = models.CharField(max_length=20)
@@ -58,6 +108,9 @@ class Car(models.Model):
     listing_drivetrain = models.CharField(max_length=10)
     created = models.CharField(max_length=255)
     updated = models.CharField(max_length=255)
+    vhf = models.ForeignKey(VHF)
+    vdf = models.ForeignKey(VDF)
+    pcf = models.ForeignKey(PCF)
 
 class City(models.Model):
     city_name = models.CharField(max_length=20)
@@ -65,20 +118,7 @@ class City(models.Model):
 class State(models.Model):
     state_name = models.CharField(max_length=20)
 
-class BSF(models.Model):
-    vin = models.CharField(max_length=17)
-    msrp = models.IntegerField(max_length=11)
-    warranty_start = models.CharField(max_length=20)
-    model_year = models.IntegerField(max_length=4)
-    model_detail = models.TextField()
-    color = models.TextField()
-    production_month = models.CharField(max_length=7)
-    interior = models.TextField()
 
-class BSF_Options(models.Model):
-    bsf = models.ForeignKey('bsf')
-    code = models.CharField(max_length=11)
-    value = models.TextField()
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):

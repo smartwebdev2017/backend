@@ -1,6 +1,7 @@
 import json
 from rest_framework import generics, permissions
 from django.db.models import Q
+import operator
 from rest_framework.filters import  SearchFilter, OrderingFilter
 from django.conf import settings
 from .serializers import UserSerializer, PostSerializer, PhotoSerializer, CarSerializer, SiteSerializer, CitySerializer, StateSerializer, BuildSheetSerializer, BuildSheetOptionsSerializer
@@ -21,6 +22,8 @@ from bs4 import BeautifulSoup
 import requests
 import re
 from decimal import Decimal
+from .serializers import SearchSerializer
+from itertools import chain
 
 class UserMixin(object):
     model = User
@@ -111,12 +114,12 @@ class CarList(generics.ListAPIView):
         query_year = self.request.GET.get("year")
         query_model = self.request.GET.get("model")
 
-        if query_title is not None:
+        if query_title not in (None, 'undefined'):
             queryset_list = queryset_list.filter(
                 Q(listing_title__icontains=query_title)
             ).distinct()
 
-        if query_price is not None:
+        if query_price not in (None, 'undefined'):
             price = query_price.split("-")
             try:
                 price_from = price[0]
@@ -133,22 +136,22 @@ class CarList(generics.ListAPIView):
                 Q(price__lt=price_to)
             ).distinct()
 
-        if query_city is not None:
+        if query_city not in (None, 'undefined'):
             queryset_list = queryset_list.filter(
                 Q(city__icontains=query_city)
             ).distinct()
 
-        if query_state is not None:
+        if query_state not in (None, 'undefined'):
             queryset_list = queryset_list.filter(
                 Q(state__icontains=query_state)
             ).distinct()
 
-        if query_description is not None:
+        if query_description not in (None, 'undefined'):
             queryset_list = queryset_list.filter(
                 Q(listing_description__icontains=query_description)
             ).distinct()
 
-        if query_mileage is not None:
+        if query_mileage not in (None, 'undefined'):
             mileage = query_mileage.split("-")
 
             try:
@@ -166,7 +169,7 @@ class CarList(generics.ListAPIView):
                 Q(mileage__lt=mileage_to)
             ).distinct()
 
-        if query_year is not None:
+        if query_year not in (None, 'undefined'):
             year = query_year.split("-")
 
             try:
@@ -185,11 +188,237 @@ class CarList(generics.ListAPIView):
                 Q(listing_year__lt=year_to)
             ).distinct()
 
-        if query_model is not None:
+        if query_model not in (None, 'undefined'):
             queryset_list = queryset_list.filter(
                 Q(listing_model__icontains=query_model)
             ).distinct()
 
+        try:
+            queries = self.request.GET.get('keyword').lower()
+        except Exception as e:
+            queries = None
+
+        if queries not in (None, 'undefined'):
+            words = re.split('; | |, |\*|\n', queries)
+
+            for query in words:
+                if query == 'pumpkin':
+                    query = 'Orange'
+                    words.append(query)
+                elif query == 'barney':
+                    query = 'Ultraviolet'
+                    words.append(query)
+                elif query == 'UV':
+                    query = 'Ultraviolet'
+                    words.append(query)
+                elif query == 'gray':
+                    query = 'grey'
+                    words.append(query)
+                elif query == 'stick':
+                    query = 'manual'
+                    words.append(query)
+                elif query == 'auto':
+                    query = 'automatic'
+                    words.append(query)
+                elif query == 'turbo':
+                    query = 'automatic'
+                    words.append(query)
+                elif query == 'long-hood':
+                    query = 'long-hood'
+                    words.append(query)
+                elif query == 'bucket':
+                    query = 'lwb'
+                    words.append(query)
+                elif query == 'wide-body':
+                    query = 'widebody'
+                    words.append(query)
+                elif query == 'paint-to-sample':
+                    query = 'pts'
+                    words.append(query)
+                elif query == 'ceramic':
+                    query = 'pccb'
+                    words.append(query)
+                elif query == 'aircooled':
+                    query = 'cooled'
+                    words.append(query)
+                elif query == 'air-cooled':
+                    query = 'cooled'
+                    words.append(query)
+                elif query == 'bucket':
+                    pass
+                elif query == 'c2':
+                    pass
+                elif query == 'c4':
+                    pass
+
+                if query.find('longhood') != -1:
+                    queryset_list = queryset_list.filter(
+                        Q(pcf__longhood__iexact=1)
+                    ).distinct()
+                elif query.find('widebody') != -1:
+                    queryset_list = queryset_list.filter(
+                        Q(pcf__widebody__iexact=1)
+                    ).distinct()
+                elif query.find('pts') != -1:
+                    queryset_list = queryset_list.filter(
+                        Q(pcf__pts__iexact=1)
+                    ).distinct()
+                elif query.find('pccb') != -1:
+                    queryset_list = queryset_list.filter(
+                        Q(pcf__pccb__iexact=1)
+                    ).distinct()
+                elif query.find('cooled') != -1:
+                    queryset_list = queryset_list.filter(
+                        Q(pcf__air_cooled__iexact=1)
+                    ).distinct()
+                elif query.find('lwb') != -1:
+                    queryset_list = queryset_list.filter(
+                        Q(pcf__lwb_seats__iexact=1)
+                    ).distinct()
+                elif query.find('cooled') != -1:
+                    queryset_list = queryset_list.filter(
+                        Q(pcf__air_cooled__iexact=1)
+                    ).distinct()
+
+                else:
+                    #queryset_list = queryset_list.filter(
+                    q_list = [
+                        Q(listing_make__icontains=query),
+                        Q(listing_model__icontains=query),
+                        Q(listing_model_detail__icontains=query),
+                        Q(listing_trim__icontains=query),
+                        Q(listing_year__iexact=query),
+                        Q(mileage__iexact=query),
+                        Q(city__iexact=query),
+                        Q(state__iexact=query),
+                        Q(listing_year__iexact=query),
+                        Q(price__iexact=query),
+                        Q(cond__iexact=query),
+                        Q(seller_type__iexact=query),
+                        Q(listing_exterior_color__iexact=query),
+                        Q(listing_interior_color__iexact=query),
+                        Q(listing_transmission__iexact=query),
+                        Q(listing_transmission_detail__icontains=query),
+                        Q(listing_title__icontains=query),
+                        Q(listing_engine_size__icontains=query),
+                        Q(listing_description__icontains=query),
+                        Q(listing_body_type__icontains=query),
+                        Q(listing_drivetrain__iexact=query),
+                        Q(listing_drivetrain__iexact=query),
+                        Q(vin__msrp__iexact=query),
+                        Q(vin__warranty_start__iexact=query),
+                        Q(vin__model_year__iexact=query),
+                        Q(vin__model_detail__iexact=query),
+                        Q(vin__color__iexact=query),
+                        Q(vin__production_month__iexact=query),
+                        Q(vin__interior__iexact=query),
+                        Q(vin__vin__iexact=query),
+                        Q(vin__options__value__icontains=query),
+                    ]
+                    pcf_q_list = [
+                        Q(pcf__color__icontains=query),
+                        Q(pcf__gap_to_msrp__iexact=query),
+                        Q(pcf__listing_age__iexact=query),
+                        Q(pcf__auto_trans__icontains=query),
+                        Q(pcf__placeholder__iexact=query),
+                        Q(pcf__produced_usa__iexact=query),
+                        Q(pcf__produced_globally__iexact=query),
+                        Q(pcf__same_counts__iexact=query)
+                    ]
+                    vdf_q_list = [
+                        Q(vdf__model_number__icontains=query) |
+                        Q(vdf__year__iexact=query) |
+                        Q(vdf__model_detail__icontains=query) |
+                        Q(vdf__region__icontains=query)
+                    ]
+                    queryset_list = queryset_list.filter(reduce(operator.or_, q_list)).distinct()
+                    #queryset_list = queryset_list.filter(vin__options__id=1)
+                    #queryset_list = queryset_list.filter(reduce(operator.or_, pcf_q_list))
+                    #queryset_list = queryset_list.filter(reduce(operator.or_, vdf_q_list))
+
+        #cars = Car.objects.all()
+        # if query is not None:
+        #     if query == 'pumpkin':
+        #         query = 'Orange'
+        #         queryset_list = queryset_list.filter(
+        #                 Q(vin__color__icontains=query)
+        #             ).distinct()
+        #     elif query == 'barney':
+        #         query = 'Ultraviolet'
+        #         queryset_list = queryset_list.filter(
+        #                 Q(vin__color__icontains=query)
+        #              ).distinct()
+        #     elif query == 'UV':
+        #         query = 'Ultraviolet'
+        #         queryset_list = queryset_list.filter(
+        #                 Q(vin__color__icontains=query)
+        #             ).distinct()
+        #     elif query == 'gray':
+        #         queryset_list = queryset_list.filter(
+        #                 Q(listing_exterior_color__icontains='grey')
+        #             ).distinct()
+        #     elif query == 'stick':
+        #         queryset_list = queryset_list.filter(
+        #                 Q(listing_transmission__icontains='Manual')
+        #             ).distinct()
+        #     elif query == 'auto':
+        #         queryset_list = queryset_list.filter(
+        #                 Q(listing_transmission__icontains='Automatic')
+        #             ).distinct()
+        #     elif query == 'turbo':
+        #         queryset_list = queryset_list.filter(
+        #                 Q(listing_transmission__icontains='Automatic')
+        #             ).distinct()
+        #     elif query == 'longhood':
+        #         queryset_list = queryset_list.filter(
+        #                 Q(pcf__longhood=1)
+        #             ).distinct()
+        #     elif query == 'long-hood':
+        #         queryset_list = queryset_list.filter(
+        #                 Q(pcf__longhood=1)
+        #             ).distinct()
+        #     elif query == 'bucket':
+        #         queryset_list = queryset_list.filter(
+        #                 Q(pcf__lwb_seats=1)
+        #             ).distinct()
+        #     elif query == 'widebody':
+        #         queryset_list = queryset_list.filter(
+        #                 Q(pcf__widebody=1)
+        #             ).distinct()
+        #     elif query == 'wide-body':
+        #         queryset_list = queryset_list.filter(
+        #                 Q(pcf__widebody=1)
+        #             ).distinct()
+        #     elif query == 'pts':
+        #         queryset_list = queryset_list.filter(
+        #                 Q(pcf__pts=1)
+        #             ).distinct()
+        #     elif query == 'paint-to-sample':
+        #         queryset_list = queryset_list.filter(
+        #                 Q(pcf__pts=1)
+        #             ).distinct()
+        #     elif query == 'ceramic':
+        #         queryset_list = queryset_list.filter(
+        #                 Q(pcf__pccb=1)
+        #             ).distinct()
+        #     elif query == 'pccb':
+        #         queryset_list = queryset_list.filter(
+        #                 Q(pcf__pccb=1)
+        #             ).distinct()
+        #     elif query == 'aircooled':
+        #         queryset_list = queryset_list.filter(
+        #                 Q(pcf__air_cooled=1)
+        #             ).distinct()
+        #     elif query == 'air-cooled':
+        #         queryset_list = queryset_list.filter(
+        #                 Q(pcf__air_cooled=1)
+        #             ).distinct()
+        #     elif query == 'bucket':
+        #         pass
+        #     elif query == 'c2':
+        #         pass
+        #     elif query == 'c4':
+        #         pass
         return queryset_list
 
 class CarDetail(generics.ListAPIView):
@@ -200,8 +429,9 @@ class CarDetail(generics.ListAPIView):
         PostAuthorCanEditPermission
     ]
     def get_queryset(self):
+        print(self.kwargs)
         vin = self.kwargs['vin']
-        return Car.objects.filter(vin=vin)
+        return Car.objects.filter(vin_code=vin)
 
 
 class PhotoDetail(PhotoMixin, generics.RetrieveUpdateDestroyAPIView):
@@ -254,6 +484,104 @@ class LoginView(generics.ListAPIView):
                 request.session['auth'] = token.key
                 return redirect('', request)
         return redirect(settings.LOGIN_URL, request)
+
+class SearchView(generics.ListAPIView):
+    model = Car
+    serializer_class = CarSerializer
+    permission_classes = [
+        PostAuthorCanEditPermission
+    ]
+    def get_queryset(self, *args, **kwargs):
+        car = {}
+        bsf = {}
+        query = self.request.GET.get('keyword').lower()
+
+        cars = Car.objects.all()
+        if query is not None:
+            if query == 'pumpkin':
+                query = 'Orange'
+                cars = cars.filter(
+                        Q(vin__color__icontains=query)
+                    ).distinct()
+            elif query == 'barney':
+                query = 'Ultraviolet'
+                cars = cars.filter(
+                        Q(vin__color__icontains=query)
+                     ).distinct()
+            elif query == 'UV':
+                query = 'Ultraviolet'
+                bsf = cars.filter(
+                        Q(vin__color__icontains=query)
+                    ).distinct()
+            elif query == 'gray':
+                cars = cars.filter(
+                        Q(listing_exterior_color__icontains='grey')
+                    ).distinct()
+            elif query == 'stick':
+                cars = cars.filter(
+                        Q(listing_transmission__icontains='Manual')
+                    ).distinct()
+            elif query == 'auto':
+                cars = cars.filter(
+                        Q(listing_transmission__icontains='Automatic')
+                    ).distinct()
+            elif query == 'turbo':
+                cars = cars.filter(
+                        Q(listing_transmission__icontains='Automatic')
+                    ).distinct()
+            elif query == 'longhood':
+                cars = cars.filter(
+                        Q(pcf__longhood=1)
+                    ).distinct()
+            elif query == 'long-hood':
+                cars = cars.filter(
+                        Q(pcf__longhood=1)
+                    ).distinct()
+            elif query == 'bucket':
+                cars = cars.filter(
+                        Q(pcf__lwb_seats=1)
+                    ).distinct()
+            elif query == 'widebody':
+                cars = cars.filter(
+                        Q(pcf__widebody=1)
+                    ).distinct()
+            elif query == 'wide-body':
+                cars = cars.filter(
+                        Q(pcf__widebody=1)
+                    ).distinct()
+            elif query == 'pts':
+                cars = cars.filter(
+                        Q(pcf__pts=1)
+                    ).distinct()
+            elif query == 'paint-to-sample':
+                cars = cars.filter(
+                        Q(pcf__pts=1)
+                    ).distinct()
+            elif query == 'ceramic':
+                cars = cars.filter(
+                        Q(pcf__pccb=1)
+                    ).distinct()
+            elif query == 'pccb':
+                cars = cars.filter(
+                        Q(pcf__pccb=1)
+                    ).distinct()
+            elif query == 'aircooled':
+                cars = cars.filter(
+                        Q(pcf__air_cooled=1)
+                    ).distinct()
+            elif query == 'air-cooled':
+                cars = cars.filter(
+                        Q(pcf__air_cooled=1)
+                    ).distinct()
+            elif query == 'bucket':
+                pass
+            elif query == 'c2':
+                pass
+            elif query == 'c4':
+                pass
+
+
+        return list(chain(cars, bsf))
 
 class BuildSheetView(generics.ListAPIView):
 

@@ -1,7 +1,10 @@
 from rest_framework import serializers
 
-from .models import User, Post, Photo, Car, Site, City, State, BSF, BSF_Options
+from .models import User, Post, Photo, Car, Site, City, State, BSF, BSF_Options, PCF, VHF, VDF
 from django.contrib.auth import update_session_auth_hash
+
+def response(type_, label, data):
+    return {'type':type_, 'label': label, 'data': data}
 
 class UserSerializer(serializers.ModelSerializer):
     posts = serializers.HyperlinkedIdentityField(view_name='userpost-list', lookup_field='username')
@@ -39,11 +42,13 @@ class SiteSerializer(serializers.ModelSerializer):
         model = Site
         fields = ('id', 'site_name', 'url', 'created', 'updated')
 
-class CarSerializer(serializers.ModelSerializer):
-    site = SiteSerializer(required=True)
+class PCFSerializer(serializers.ModelSerializer):
+
+
     class Meta:
-        model = Car
+        model = PCF
         fields = '__all__'
+
 
 class CitySerializer(serializers.ModelSerializer):
 
@@ -57,15 +62,63 @@ class StateSerializer(serializers.ModelSerializer):
         model = State
         fields = '__all__'
 
-class BuildSheetSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = BSF
-        fields = '__all__'
-
 class BuildSheetOptionsSerializer(serializers.ModelSerializer):
-    bsf = serializers.PrimaryKeyRelatedField(queryset=BSF.objects.all())
 
     class Meta:
         model = BSF_Options
         fields = '__all__'
+
+    def to_representation(self, instance):
+        return instance.value
+
+class BuildSheetSerializer(serializers.ModelSerializer):
+    #options = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    #id = BuildSheetOptionsSerializer(many=True)
+    # id = BuildSheetOptionsSerializer(required=True)
+    options = BuildSheetOptionsSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = BSF
+        fields = ['id', 'options', 'vin', 'msrp', 'warranty_start', 'model_year', 'model_detail', 'color', 'production_month', 'interior']
+    # def to_representation(self, instance):
+    #     serialized_data = super(BuildSheetSerializer,  self).to_representation(instance)
+    #     print(serialized_data['options'])
+    #     data = ''
+    #     for option in serialized_data['options']:
+    #         data = data + option + ','
+    #     serialized_data['options'] = data
+    #
+    #     return serialized_data
+class VDFSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = VDF
+        fields = '__all__'
+class VHFSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = VHF
+        fields = '__all__'
+
+class CarSerializer(serializers.ModelSerializer):
+    site = SiteSerializer(required=True)
+    vin = BuildSheetSerializer(required=True)
+    pcf = PCFSerializer(required=True)
+    vdf = VDFSerializer(required=True)
+    vhf = VHFSerializer(required=True)
+
+    class Meta:
+        model = Car
+        fields = '__all__'
+
+class SearchSerializer(serializers.Serializer):
+
+    def to_representation(self, instance):
+        if isinstance(instance, Car):
+            serializer = CarSerializer(instance, context=self.context)
+            #return response('car', instance.name, serializer.data)
+            return serializer.data
+        if isinstance(instance, BSF):
+            serializer = BuildSheetSerializer(instance, context=self.context)
+            #return response('bsf', instance.name, serializer.data)
+            return serializer.data
