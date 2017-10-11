@@ -289,7 +289,7 @@ class CarList(generics.ListAPIView):
                         Q(listing_trim__icontains=query),
                         Q(listing_year__iexact=query),
                         Q(mileage__iexact=query),
-                        Q(city__iexact=query),
+                        Q(city__icontains=query),
                         Q(state__iexact=query),
                         Q(listing_year__iexact=query),
                         Q(price__iexact=query),
@@ -306,7 +306,7 @@ class CarList(generics.ListAPIView):
                         Q(listing_drivetrain__iexact=query),
                         Q(listing_drivetrain__iexact=query),
                         Q(vin__msrp__iexact=query),
-                        Q(vin__warranty_start__iexact=query),
+                        Q(vin__warranty_start__icontains=query),
                         Q(vin__model_year__iexact=query),
                         Q(vin__model_detail__iexact=query),
                         Q(vin__color__iexact=query),
@@ -314,6 +314,7 @@ class CarList(generics.ListAPIView):
                         Q(vin__interior__iexact=query),
                         Q(vin__vin__iexact=query),
                         Q(vin__options__value__icontains=query),
+                        Q(vin__options__code__icontains=query),
                     ]
                     pcf_q_list = [
                         Q(pcf__color__icontains=query),

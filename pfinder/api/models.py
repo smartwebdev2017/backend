@@ -77,7 +77,7 @@ class PCF(models.Model):
 class Car(models.Model):
     #id = models.IntegerField()
     site = models.ForeignKey(Site, related_name='sites')
-    vin = models.ForeignKey(BSF)
+    vin = models.ForeignKey(BSF, null=True, blank=True)
 
     #vin = models.ForeignKey(BSF, related_name='')
     vin_code = models.CharField(max_length=17, default='')
@@ -101,16 +101,16 @@ class Car(models.Model):
     listing_title = models.CharField(max_length=255)
     listing_url = models.CharField(max_length=255)
     listing_engine_size = models.CharField(max_length=10)
-    listing_description = models.CharField(max_length=255)
+    listing_description = models.TextField()
     sold_state = models.IntegerField(max_length=1)
     sold_date = models.CharField(max_length=30)
     listing_body_type = models.CharField(max_length=20)
     listing_drivetrain = models.CharField(max_length=10)
     created = models.CharField(max_length=255)
     updated = models.CharField(max_length=255)
-    vhf = models.ForeignKey(VHF)
-    vdf = models.ForeignKey(VDF)
-    pcf = models.ForeignKey(PCF)
+    vhf = models.ForeignKey(VHF, null=True, blank=True)
+    vdf = models.ForeignKey(VDF, null=True, blank=True)
+    pcf = models.ForeignKey(PCF, null=True, blank=True)
 
 class City(models.Model):
     city_name = models.CharField(max_length=20)

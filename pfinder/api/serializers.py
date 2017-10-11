@@ -68,8 +68,8 @@ class BuildSheetOptionsSerializer(serializers.ModelSerializer):
         model = BSF_Options
         fields = '__all__'
 
-    def to_representation(self, instance):
-        return instance.value
+    # def to_representation(self, instance):
+    #     return instance.value
 
 class BuildSheetSerializer(serializers.ModelSerializer):
     #options = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
