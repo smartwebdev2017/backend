@@ -74,6 +74,7 @@ class PCF(models.Model):
     produced_usa = models.IntegerField(max_length=11)
     produced_globally = models.IntegerField(max_length=11)
     same_counts = models.IntegerField(max_length=11)
+    vid = models.CharField(max_length=6, null=True, blank=True)
 class Car(models.Model):
     #id = models.IntegerField()
     site = models.ForeignKey(Site, related_name='sites')

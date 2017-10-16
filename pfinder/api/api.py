@@ -431,8 +431,8 @@ class CarDetail(generics.ListAPIView):
     ]
     def get_queryset(self):
         print(self.kwargs)
-        vin = self.kwargs['vin']
-        return Car.objects.filter(vin_code=vin)
+        vin = self.kwargs['vid']
+        return Car.objects.filter(pcf__vid=vin)
 
 
 class PhotoDetail(PhotoMixin, generics.RetrieveUpdateDestroyAPIView):

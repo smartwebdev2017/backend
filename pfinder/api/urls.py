@@ -17,7 +17,7 @@ post_urls = [
 ]
 
 cars_urls = [
-    url(r'^/(?P<vin>.+)/$', CarDetail.as_view(), name='car-detail'),
+    url(r'^/(?P<vid>.+)/$', CarDetail.as_view(), name='car-detail'),
     url(r'^$', CarList.as_view(), name='car-list')
 ]
 
