@@ -113,11 +113,15 @@ class CarList(generics.ListAPIView):
         query_mileage = self.request.GET.get("mileage")
         query_year = self.request.GET.get("year")
         query_model = self.request.GET.get("model")
+        query_longhood = self.request.GET.get("longhood")
+        query_widebody = self.request.GET.get("widebody")
+        query_pts = self.request.GET.get("pts")
+        query_pccb = self.request.GET.get("pccb")
+        query_lwb = self.request.GET.get("lwb")
+        query_aircooled = self.request.GET.get("aircooled")
+        query_auto_trans = self.request.GET.get("auto_trans")
 
-        if query_title not in (None, 'undefined'):
-            queryset_list = queryset_list.filter(
-                Q(listing_title__icontains=query_title)
-            ).distinct()
+        if query_title not in (None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_title__icontains=query_title)).distinct()
 
         if query_price not in (None, 'undefined'):
             price = query_price.split("-")
@@ -128,28 +132,15 @@ class CarList(generics.ListAPIView):
                 price_from = 1000
                 price_to = 10000000
 
-            queryset_list = queryset_list.filter(
-                Q(price__gt=price_from)
-            ).distinct()
+            queryset_list = queryset_list.filter(Q(price__gt=price_from)).distinct()
 
-            queryset_list = queryset_list.filter(
-                Q(price__lt=price_to)
-            ).distinct()
+            queryset_list = queryset_list.filter(Q(price__lt=price_to)).distinct()
 
-        if query_city not in (None, 'undefined'):
-            queryset_list = queryset_list.filter(
-                Q(city__icontains=query_city)
-            ).distinct()
+        if query_city not in ('', 'None', 'undefined'): queryset_list = queryset_list.filter(Q(city__icontains=query_city)).distinct()
 
-        if query_state not in (None, 'undefined'):
-            queryset_list = queryset_list.filter(
-                Q(state__icontains=query_state)
-            ).distinct()
+        if query_state not in ('', 'None', 'undefined'): queryset_list = queryset_list.filter(Q(state__icontains=query_state)).distinct()
 
-        if query_description not in (None, 'undefined'):
-            queryset_list = queryset_list.filter(
-                Q(listing_description__icontains=query_description)
-            ).distinct()
+        if query_description not in (None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_description__icontains=query_description)).distinct()
 
         if query_mileage not in (None, 'undefined'):
             mileage = query_mileage.split("-")
@@ -161,13 +152,9 @@ class CarList(generics.ListAPIView):
                 mileage_from = 0
                 mileage_to = 198000
 
-            queryset_list = queryset_list.filter(
-                Q(mileage__gt=mileage_from)
-            ).distinct()
+            queryset_list = queryset_list.filter(Q(mileage__gt=mileage_from)).distinct()
 
-            queryset_list = queryset_list.filter(
-                Q(mileage__lt=mileage_to)
-            ).distinct()
+            queryset_list = queryset_list.filter(Q(mileage__lt=mileage_to)).distinct()
 
         if query_year not in (None, 'undefined'):
             year = query_year.split("-")
@@ -179,19 +166,38 @@ class CarList(generics.ListAPIView):
                 year_from = 1955
                 year_to = year[0]
 
-            queryset_list = queryset_list.filter(
-                Q(listing_year__gt=year_from)
-            ).distinct()
+            queryset_list = queryset_list.filter(Q(listing_year__gt=year_from)).distinct()
 
+            queryset_list = queryset_list.filter(Q(listing_year__lt=year_to)).distinct()
 
-            queryset_list = queryset_list.filter(
-                Q(listing_year__lt=year_to)
-            ).distinct()
+        if query_model not in (None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_model__icontains=query_model)).distinct()
 
-        if query_model not in (None, 'undefined'):
-            queryset_list = queryset_list.filter(
-                Q(listing_model__icontains=query_model)
-            ).distinct()
+        if query_longhood in ('', 'None', 'undefined'): pass
+        elif query_longhood == 'false': queryset_list = queryset_list.filter(Q(pcf__longhood__iexact=0)).distinct()
+        elif query_longhood == 'true': queryset_list = queryset_list.filter(Q(pcf__longhood__iexact=1)).distinct()
+
+        if query_widebody in ('', 'None', 'undefined'): pass
+        elif query_widebody == 'false': queryset_list = queryset_list.filter(Q(pcf__widebody__iexact=0)).distinct()
+        elif query_widebody == 'true':  queryset_list = queryset_list.filter(Q(pcf__widebody__iexact=1)).distinct()
+
+        if query_pts in ('', 'None', 'undefined'): pass
+        elif query_pts == 'false': queryset_list = queryset_list.filter(Q(pcf__pts__iexact=0)).distinct()
+        elif query_pts == 'true': queryset_list = queryset_list.filter(Q(pcf__pts__iexact=1)).distinct()
+
+        if query_pccb in ('', 'None', 'undefined'): pass
+        elif query_pccb == 'false': queryset_list = queryset_list.filter(Q(pcf__pccb__iexact=0)).distinct()
+        elif query_pccb == 'true': queryset_list = queryset_list.filter(Q(pcf__pccb__iexact=1)).distinct()
+
+        if query_lwb in ('', 'None', 'undefined'): pass
+        elif query_lwb == 'false': queryset_list = queryset_list.filter(Q(pcf__lwb_seats__iexact=0)).distinct()
+        elif query_lwb == 'true': queryset_list = queryset_list.filter(Q(pcf__lwb_seats__iexact=1)).distinct()
+
+        if query_aircooled in ('', 'None', 'undefined'): pass
+        elif query_aircooled == 'false': queryset_list = queryset_list.filter(Q(pcf__air_cooled__iexact=0)).distinct()
+        elif query_aircooled == 'true':  queryset_list = queryset_list.filter(Q(pcf__air_cooled__iexact=1)).distinct()
+        print(query_auto_trans)
+        if query_auto_trans in ('', 'None', 'undefined'): pass
+        else: queryset_list = queryset_list.filter(Q(pcf__auto_trans__iexact=query_auto_trans)).distinct()
 
         try:
             queries = self.request.GET.get('keyword').lower()
@@ -251,35 +257,13 @@ class CarList(generics.ListAPIView):
                 elif query == 'c4':
                     pass
 
-                if query.find('longhood') != -1:
-                    queryset_list = queryset_list.filter(
-                        Q(pcf__longhood__iexact=1)
-                    ).distinct()
-                elif query.find('widebody') != -1:
-                    queryset_list = queryset_list.filter(
-                        Q(pcf__widebody__iexact=1)
-                    ).distinct()
-                elif query.find('pts') != -1:
-                    queryset_list = queryset_list.filter(
-                        Q(pcf__pts__iexact=1)
-                    ).distinct()
-                elif query.find('pccb') != -1:
-                    queryset_list = queryset_list.filter(
-                        Q(pcf__pccb__iexact=1)
-                    ).distinct()
-                elif query.find('cooled') != -1:
-                    queryset_list = queryset_list.filter(
-                        Q(pcf__air_cooled__iexact=1)
-                    ).distinct()
-                elif query.find('lwb') != -1:
-                    queryset_list = queryset_list.filter(
-                        Q(pcf__lwb_seats__iexact=1)
-                    ).distinct()
-                elif query.find('cooled') != -1:
-                    queryset_list = queryset_list.filter(
-                        Q(pcf__air_cooled__iexact=1)
-                    ).distinct()
-
+                if query.find('longhood') != -1: queryset_list = queryset_list.filter(Q(pcf__longhood__iexact=1)).distinct()
+                elif query.find('widebody') != -1: queryset_list = queryset_list.filter(Q(pcf__widebody__iexact=1)).distinct()
+                elif query.find('pts') != -1: queryset_list = queryset_list.filter(Q(pcf__pts__iexact=1)).distinct()
+                elif query.find('pccb') != -1: queryset_list = queryset_list.filter(Q(pcf__pccb__iexact=1)).distinct()
+                elif query.find('cooled') != -1: queryset_list = queryset_list.filter(Q(pcf__air_cooled__iexact=1)).distinct()
+                elif query.find('lwb') != -1: queryset_list = queryset_list.filter(Q(pcf__lwb_seats__iexact=1)).distinct()
+                elif query.find('cooled') != -1: queryset_list = queryset_list.filter(Q(pcf__air_cooled__iexact=1)).distinct()
                 else:
                     #queryset_list = queryset_list.filter(
                     q_list = [
@@ -315,6 +299,9 @@ class CarList(generics.ListAPIView):
                         Q(vin__vin__iexact=query),
                         Q(vin__options__value__icontains=query),
                         Q(vin__options__code__icontains=query),
+                        Q(pcf__body_type__icontains=query),
+                        Q(pcf__model_number__iexact=query),
+                        Q(pcf__vid__iexact=query),
                     ]
                     pcf_q_list = [
                         Q(pcf__color__icontains=query),
@@ -333,93 +320,7 @@ class CarList(generics.ListAPIView):
                         Q(vdf__region__icontains=query)
                     ]
                     queryset_list = queryset_list.filter(reduce(operator.or_, q_list)).distinct()
-                    #queryset_list = queryset_list.filter(vin__options__id=1)
-                    #queryset_list = queryset_list.filter(reduce(operator.or_, pcf_q_list))
-                    #queryset_list = queryset_list.filter(reduce(operator.or_, vdf_q_list))
 
-        #cars = Car.objects.all()
-        # if query is not None:
-        #     if query == 'pumpkin':
-        #         query = 'Orange'
-        #         queryset_list = queryset_list.filter(
-        #                 Q(vin__color__icontains=query)
-        #             ).distinct()
-        #     elif query == 'barney':
-        #         query = 'Ultraviolet'
-        #         queryset_list = queryset_list.filter(
-        #                 Q(vin__color__icontains=query)
-        #              ).distinct()
-        #     elif query == 'UV':
-        #         query = 'Ultraviolet'
-        #         queryset_list = queryset_list.filter(
-        #                 Q(vin__color__icontains=query)
-        #             ).distinct()
-        #     elif query == 'gray':
-        #         queryset_list = queryset_list.filter(
-        #                 Q(listing_exterior_color__icontains='grey')
-        #             ).distinct()
-        #     elif query == 'stick':
-        #         queryset_list = queryset_list.filter(
-        #                 Q(listing_transmission__icontains='Manual')
-        #             ).distinct()
-        #     elif query == 'auto':
-        #         queryset_list = queryset_list.filter(
-        #                 Q(listing_transmission__icontains='Automatic')
-        #             ).distinct()
-        #     elif query == 'turbo':
-        #         queryset_list = queryset_list.filter(
-        #                 Q(listing_transmission__icontains='Automatic')
-        #             ).distinct()
-        #     elif query == 'longhood':
-        #         queryset_list = queryset_list.filter(
-        #                 Q(pcf__longhood=1)
-        #             ).distinct()
-        #     elif query == 'long-hood':
-        #         queryset_list = queryset_list.filter(
-        #                 Q(pcf__longhood=1)
-        #             ).distinct()
-        #     elif query == 'bucket':
-        #         queryset_list = queryset_list.filter(
-        #                 Q(pcf__lwb_seats=1)
-        #             ).distinct()
-        #     elif query == 'widebody':
-        #         queryset_list = queryset_list.filter(
-        #                 Q(pcf__widebody=1)
-        #             ).distinct()
-        #     elif query == 'wide-body':
-        #         queryset_list = queryset_list.filter(
-        #                 Q(pcf__widebody=1)
-        #             ).distinct()
-        #     elif query == 'pts':
-        #         queryset_list = queryset_list.filter(
-        #                 Q(pcf__pts=1)
-        #             ).distinct()
-        #     elif query == 'paint-to-sample':
-        #         queryset_list = queryset_list.filter(
-        #                 Q(pcf__pts=1)
-        #             ).distinct()
-        #     elif query == 'ceramic':
-        #         queryset_list = queryset_list.filter(
-        #                 Q(pcf__pccb=1)
-        #             ).distinct()
-        #     elif query == 'pccb':
-        #         queryset_list = queryset_list.filter(
-        #                 Q(pcf__pccb=1)
-        #             ).distinct()
-        #     elif query == 'aircooled':
-        #         queryset_list = queryset_list.filter(
-        #                 Q(pcf__air_cooled=1)
-        #             ).distinct()
-        #     elif query == 'air-cooled':
-        #         queryset_list = queryset_list.filter(
-        #                 Q(pcf__air_cooled=1)
-        #             ).distinct()
-        #     elif query == 'bucket':
-        #         pass
-        #     elif query == 'c2':
-        #         pass
-        #     elif query == 'c4':
-        #         pass
         return queryset_list
 
 class CarDetail(generics.ListAPIView):
