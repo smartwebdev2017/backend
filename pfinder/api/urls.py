@@ -2,7 +2,7 @@ from django.conf.urls import url, include
 
 from .api import UserList, UserDetail
 from .api import PostList, PostDetail, UserPostList
-from .api import PhotoList, PhotoDetail, PostPhotoList, CarList, CarDetail, SiteList, CityList, StateList, BuildSheetView, SearchView
+from .api import PhotoList, PhotoDetail, PostPhotoList, CarList, CarDetail, SiteList, CityList, StateList, BuildSheetView, SearchView, VincodesView
 
 user_urls = [
     url(r'^/(?P<username>[0-9a-zA-Z_-]+)/posts$', UserPostList.as_view(), name='userpost-list'),
@@ -45,6 +45,9 @@ search_urls = [
     url(r'^$', SearchView.as_view(), name='search')
 ]
 
+pcf_urls = [
+    url(r'^$', VincodesView.as_view(), name='vincodes')
+]
 urlpatterns = [
     url(r'^users', include(user_urls)),
     url(r'^posts', include(post_urls)),
@@ -54,6 +57,6 @@ urlpatterns = [
     url(r'^cities', include(cities_urls)),
     url(r'^states', include(states_urls)),
     url(r'^bsf', include(bsf_urls)),
-    url(r'^search', include(search_urls))
-
+    url(r'^search', include(search_urls)),
+    url(r'^codes', include(pcf_urls))
 ]

@@ -42,14 +42,6 @@ class SiteSerializer(serializers.ModelSerializer):
         model = Site
         fields = ('id', 'site_name', 'url', 'created', 'updated')
 
-class PCFSerializer(serializers.ModelSerializer):
-
-
-    class Meta:
-        model = PCF
-        fields = '__all__'
-
-
 class CitySerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -99,7 +91,14 @@ class VHFSerializer(serializers.ModelSerializer):
     class Meta:
         model = VHF
         fields = '__all__'
-
+class PCFSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PCF
+        fields = '__all__'
+class PCFModelNumberSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PCF
+        fields = ('model_number',)
 class CarSerializer(serializers.ModelSerializer):
     site = SiteSerializer(required=True)
     vin = BuildSheetSerializer(required=True)
