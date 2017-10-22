@@ -266,7 +266,9 @@ class CarList(generics.ListAPIView):
                 elif query.find('pts') != -1: queryset_list = queryset_list.filter(Q(pcf__pts__iexact=1)).distinct()
                 elif query.find('pccb') != -1: queryset_list = queryset_list.filter(Q(pcf__pccb__iexact=1)).distinct()
                 elif query.find('cooled') != -1: queryset_list = queryset_list.filter(Q(pcf__air_cooled__iexact=1)).distinct()
-                elif query.find('lwb') != -1: queryset_list = queryset_list.filter(Q(pcf__lwb_seats__iexact=1)).distinct()
+                elif query.find('lwb') != -1:
+                    q_list = [Q(pcf__lwb_seats__iexact=1), Q(listing_title__icontains='lwb')]
+                    queryset_list = queryset_list.filter(reduce(operator.or_, q_list)).distinct()
                 elif query.find('cooled') != -1: queryset_list = queryset_list.filter(Q(pcf__air_cooled__iexact=1)).distinct()
                 else:
                     #queryset_list = queryset_list.filter(
