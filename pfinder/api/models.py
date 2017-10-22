@@ -115,12 +115,15 @@ class Car(models.Model):
     vdf = models.ForeignKey(VDF, null=True, blank=True)
     pcf = models.ForeignKey(PCF, null=True, blank=True)
 
+
 class City(models.Model):
     city_name = models.CharField(max_length=20)
 
 class State(models.Model):
     state_name = models.CharField(max_length=20)
 
+class RetryCar(models.Model):
+    vin_code = models.CharField(max_length=17, default='')
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
