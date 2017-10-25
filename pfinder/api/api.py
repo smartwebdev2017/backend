@@ -11,6 +11,7 @@ from rest_framework import views, viewsets
 import rest_framework_filters as filters
 from rest_framework.authentication import SessionAuthentication, BaseAuthentication
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
@@ -93,10 +94,15 @@ class TitleFilter(django_filters.FilterSet):
         model = Car
         fields = ['listing_title']
 
+class StandardResultSetPagination(PageNumberPagination):
+    page_size = 2
+    page_size_query_param = 'page_size'
+    max_page_size = 1000
 class CarList(generics.ListAPIView):
     model = Car
 
     serializer_class = CarSerializer
+    pagination_class = StandardResultSetPagination
     filter_backends = [SearchFilter]
     search_fields= ['listing_title']
     permission_classes = [
@@ -104,7 +110,8 @@ class CarList(generics.ListAPIView):
     ]
     #filter_class = TitleFilter
     def get_queryset(self, *args, **kwargs):
-        queryset_list = Car.objects.all()
+        #queryset_list = Car.objects.all()
+        queryset_list = Car.objects.select_related('pcf', 'site', 'vin','vdf', 'vhf').all()
         query_title = self.request.GET.get("title")
         query_price = self.request.GET.get("price")
         query_city = self.request.GET.get("city")

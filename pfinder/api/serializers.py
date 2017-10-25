@@ -110,6 +110,11 @@ class CarSerializer(serializers.ModelSerializer):
         model = Car
         fields = '__all__'
 
+    @staticmethod
+    def setup_eager_loading(queryset):
+        queryset = queryset.select_related('pcf')
+        return queryset
+
 class SearchSerializer(serializers.Serializer):
 
     def to_representation(self, instance):
