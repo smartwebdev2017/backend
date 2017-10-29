@@ -61,7 +61,7 @@ class PCF(models.Model):
     widebody = models.IntegerField(max_length = 1)
     pts = models.IntegerField(max_length = 1)
     pccb = models.IntegerField(max_length = 1)
-    color = models.CharField(max_length=15)
+    color = models.TextField()
     body_type = models.CharField(max_length=15)
     air_cooled = models.IntegerField(max_length=1)
     gap_to_msrp = models.FloatField()

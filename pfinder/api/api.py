@@ -95,7 +95,7 @@ class TitleFilter(django_filters.FilterSet):
         fields = ['listing_title']
 
 class StandardResultSetPagination(PageNumberPagination):
-    page_size = 2
+    page_size = 10
     page_size_query_param = 'page_size'
     max_page_size = 1000
 class CarList(generics.ListAPIView):
@@ -113,12 +113,18 @@ class CarList(generics.ListAPIView):
         #queryset_list = Car.objects.all()
         queryset_list = Car.objects.select_related('pcf', 'site', 'vin','vdf', 'vhf').all()
         query_title = self.request.GET.get("title")
-        query_price = self.request.GET.get("price")
+        #query_price = self.request.GET.get("price")
+        price_from = self.request.GET.get("price_from")
+        price_to = self.request.GET.get("price_to")
         query_city = self.request.GET.get("city")
         query_state = self.request.GET.get("state")
         query_description = self.request.GET.get("description")
-        query_mileage = self.request.GET.get("mileage")
-        query_year = self.request.GET.get("year")
+        #query_mileage = self.request.GET.get("mileage")
+        mileage_from = self.request.GET.get("mileage_from")
+        mileage_to = self.request.GET.get("mileage_to")
+        #query_year = self.request.GET.get("year")
+        year_from = self.request.GET.get("year_from")
+        year_to = self.request.GET.get("year_to")
         query_model = self.request.GET.get("model")
         query_longhood = self.request.GET.get("longhood")
         query_widebody = self.request.GET.get("widebody")
@@ -129,56 +135,56 @@ class CarList(generics.ListAPIView):
         query_auto_trans = self.request.GET.get("auto_trans")
         query_model_number = self.request.GET.get("model_number")
 
-        if query_title not in (None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_title__icontains=query_title)).distinct()
+        print(query_aircooled)
+        if query_title not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_title__icontains=query_title)).distinct()
 
-        if query_price not in (None, 'undefined'):
-            price = query_price.split("-")
-            try:
-                price_from = price[0]
-                price_to = price[1]
-            except Exception as e:
-                price_from = 1000
-                price_to = 10000000
+        # if query_price not in (None, 'undefined'):
+        #     price = query_price.split("-")
+        #     try:
+        #         price_from = price[0]
+        #         price_to = price[1]
+        #     except Exception as e:
+        #         price_from = 1000
+        #         price_to = 10000000
 
-            queryset_list = queryset_list.filter(Q(price__gt=price_from)).distinct()
-
-            queryset_list = queryset_list.filter(Q(price__lt=price_to)).distinct()
+        queryset_list = queryset_list.filter(Q(price__gt=price_from)).distinct()
+        queryset_list = queryset_list.filter(Q(price__lt=price_to)).distinct()
 
         if query_city not in ('', 'None', 'undefined', None): queryset_list = queryset_list.filter(Q(city__icontains=query_city)).distinct()
 
         if query_state not in ('', 'None', 'undefined', None): queryset_list = queryset_list.filter(Q(state__icontains=query_state)).distinct()
 
-        if query_description not in (None, 'undefined', None): queryset_list = queryset_list.filter(Q(listing_description__icontains=query_description)).distinct()
+        if query_description not in ('', 'None', 'undefined', None): queryset_list = queryset_list.filter(Q(listing_description__icontains=query_description)).distinct()
 
-        if query_mileage not in (None, 'undefined', None):
-            mileage = query_mileage.split("-")
+        # if query_mileage not in (None, 'undefined', None):
+        #     mileage = query_mileage.split("-")
+        #
+        #     try:
+        #         mileage_from = mileage[0]
+        #         mileage_to = mileage[1]
+        #     except Exception as e:
+        #         mileage_from = 0
+        #         mileage_to = 198000
 
-            try:
-                mileage_from = mileage[0]
-                mileage_to = mileage[1]
-            except Exception as e:
-                mileage_from = 0
-                mileage_to = 198000
+        queryset_list = queryset_list.filter(Q(mileage__gt=mileage_from)).distinct()
 
-            queryset_list = queryset_list.filter(Q(mileage__gt=mileage_from)).distinct()
+        queryset_list = queryset_list.filter(Q(mileage__lt=mileage_to)).distinct()
 
-            queryset_list = queryset_list.filter(Q(mileage__lt=mileage_to)).distinct()
+        # if query_year not in (None, 'undefined'):
+        #     year = query_year.split("-")
+        #
+        #     try:
+        #         year_from = year[0]
+        #         year_to = year[1]
+        #     except Exception as e:
+        #         year_from = 1955
+        #         year_to = year[0]
 
-        if query_year not in (None, 'undefined'):
-            year = query_year.split("-")
+        queryset_list = queryset_list.filter(Q(listing_year__gt=year_from)).distinct()
 
-            try:
-                year_from = year[0]
-                year_to = year[1]
-            except Exception as e:
-                year_from = 1955
-                year_to = year[0]
+        queryset_list = queryset_list.filter(Q(listing_year__lt=year_to)).distinct()
 
-            queryset_list = queryset_list.filter(Q(listing_year__gt=year_from)).distinct()
-
-            queryset_list = queryset_list.filter(Q(listing_year__lt=year_to)).distinct()
-
-        if query_model not in (None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_model__icontains=query_model)).distinct()
+        if query_model not in ('', 'None', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_model__icontains=query_model)).distinct()
 
         if query_longhood in ('', 'None', 'undefined', None): pass
         elif query_longhood == 'false': queryset_list = queryset_list.filter(Q(pcf__longhood__iexact=0)).distinct()
