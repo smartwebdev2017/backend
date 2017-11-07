@@ -352,8 +352,37 @@ class CarDetail(generics.ListAPIView):
     def get_queryset(self):
         print(self.kwargs)
         vin = self.kwargs['vid']
-        return Car.objects.filter(pcf__vid=vin)
+        queryset_list = Car.objects.filter(pcf__vid=vin)
+        queryset_list = queryset_list.filter(active=1)
+        return queryset_list
 
+class ActiveCarDetail(generics.ListAPIView):
+    model = Car
+    serializer_class = CarSerializer
+    search_fields= ['listing_title']
+    permission_classes = [
+        PostAuthorCanEditPermission
+    ]
+    def get_queryset(self):
+        print(self.kwargs)
+        vin = self.kwargs['vid']
+        queryset_list = Car.objects.filter(pcf__vid=vin)
+        queryset_list = queryset_list.filter(active=1)
+        return queryset_list
+
+class InactiveCarDetail(generics.ListAPIView):
+    model = Car
+    serializer_class = CarSerializer
+    search_fields= ['listing_title']
+    permission_classes = [
+        PostAuthorCanEditPermission
+    ]
+    def get_queryset(self):
+        print(self.kwargs)
+        vin = self.kwargs['vid']
+        queryset_list = Car.objects.filter(pcf__vid=vin)
+        queryset_list = queryset_list.filter(active=0)
+        return queryset_list
 
 class PhotoDetail(PhotoMixin, generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [

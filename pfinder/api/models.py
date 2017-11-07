@@ -114,7 +114,7 @@ class Car(models.Model):
     vhf = models.ForeignKey(VHF, null=True, blank=True)
     vdf = models.ForeignKey(VDF, null=True, blank=True)
     pcf = models.ForeignKey(PCF, null=True, blank=True)
-
+    active = models.IntegerField(max_length=1, null=False, blank=False, default=1)
 
 class City(models.Model):
     city_name = models.CharField(max_length=20)

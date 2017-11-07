@@ -2,7 +2,7 @@ from django.conf.urls import url, include
 
 from .api import UserList, UserDetail
 from .api import PostList, PostDetail, UserPostList
-from .api import PhotoList, PhotoDetail, PostPhotoList, CarList, CarDetail, SiteList, CityList, StateList, BuildSheetView, SearchView, VincodesView
+from .api import PhotoList, PhotoDetail, PostPhotoList, CarList, CarDetail, ActiveCarDetail, InactiveCarDetail, SiteList, CityList, StateList, BuildSheetView, SearchView, VincodesView
 
 user_urls = [
     url(r'^/(?P<username>[0-9a-zA-Z_-]+)/posts$', UserPostList.as_view(), name='userpost-list'),
@@ -18,6 +18,15 @@ post_urls = [
 
 cars_urls = [
     url(r'^/(?P<vid>.+)/$', CarDetail.as_view(), name='car-detail'),
+    url(r'^$', CarList.as_view(), name='car-list')
+]
+
+active_urls = [
+    url(r'^/(?P<vid>.+)/$', ActiveCarDetail.as_view(), name='car-detail'),
+    url(r'^$', CarList.as_view(), name='car-list')
+]
+inactive_urls = [
+    url(r'^/(?P<vid>.+)/$', InactiveCarDetail.as_view(), name='car-detail'),
     url(r'^$', CarList.as_view(), name='car-list')
 ]
 
@@ -58,5 +67,7 @@ urlpatterns = [
     url(r'^states', include(states_urls)),
     url(r'^bsf', include(bsf_urls)),
     url(r'^search', include(search_urls)),
-    url(r'^codes', include(pcf_urls))
+    url(r'^codes', include(pcf_urls)),
+    url(r'^active', include(active_urls)),
+    url(r'^inactive', include(inactive_urls)),
 ]
