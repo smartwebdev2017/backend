@@ -134,8 +134,19 @@ class CarList(generics.ListAPIView):
         query_aircooled = self.request.GET.get("aircooled")
         query_auto_trans = self.request.GET.get("auto_trans")
         query_model_number = self.request.GET.get("model_number")
+        try:
+            sort = self.request.GET.get("sort")
+        except Exception as e:
+            sort = ''
 
-        print(query_aircooled)
+        try:
+            direction = self.request.GET.get("direction")
+        except Exception as e:
+            direction = ''
+
+        print(sort)
+        print(direction)
+
         if query_title not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_title__icontains=query_title)).distinct()
 
         # if query_price not in (None, 'undefined'):
@@ -339,8 +350,13 @@ class CarList(generics.ListAPIView):
                         Q(vdf__region__icontains=query)
                     ]
                     queryset_list = queryset_list.filter(reduce(operator.or_, q_list)).distinct()
+        if sort not in ('', 'None', 'undefined', None):
+            if direction =='desc':
+                queryset_list = queryset_list.order_by('-' + sort)
+            elif direction =='asc':
+                queryset_list = queryset_list.order_by(sort)
 
-        return queryset_list
+        return queryset_list.filter(pcf__isnull=False)
 
 class CarDetail(generics.ListAPIView):
     model = Car
@@ -353,7 +369,7 @@ class CarDetail(generics.ListAPIView):
         print(self.kwargs)
         vin = self.kwargs['vid']
         queryset_list = Car.objects.filter(pcf__vid=vin)
-        queryset_list = queryset_list.filter(active=1)
+        #queryset_list = queryset_list.filter(active=1)
         return queryset_list
 
 class ActiveCarDetail(generics.ListAPIView):
@@ -540,6 +556,19 @@ class VincodesView(generics.ListAPIView):
 
     def get_queryset(self):
         return PCF.objects.values('model_number').distinct()
+
+class EmailView(generics.ListAPIView):
+
+    permission_classes = [
+        permissions.AllowAny
+    ]
+
+    def post(self, request, format=None):
+        email = request.data.get("email")
+        subject = request.data.get("subject")
+        content = request.data.get("content")
+        print(email)
+        return Response('ok')
 
 class BuildSheetView(generics.ListAPIView):
 
