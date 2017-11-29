@@ -25,6 +25,7 @@ import re
 from decimal import Decimal
 from .serializers import SearchSerializer
 from itertools import chain
+from django.core.mail import send_mail
 
 class UserMixin(object):
     model = User
@@ -112,7 +113,20 @@ class CarList(generics.ListAPIView):
     def get_queryset(self, *args, **kwargs):
         #queryset_list = Car.objects.all()
         queryset_list = Car.objects.select_related('pcf', 'site', 'vin','vdf', 'vhf').all()
+        listing_year = self.request.GET.get("listing_year")
         query_title = self.request.GET.get("title")
+        listing_exterior_color = self.request.GET.get('listing_exterior_color')
+        listing_interior_color = self.request.GET.get('listing_interior_color')
+        vin = self.request.GET.get('vin')
+        listing_transmission = self.request.GET.get('listing_transmission')
+        listing_engine_size = self.request.GET.get('listing_engine_size')
+        listing_body_type = self.request.GET.get('listing_body_type')
+        listing_drivetrain = self.request.GET.get('listing_drivetrain')
+        cond = self.request.GET.get('cond')
+        seller_type = self.request.GET.get('seller_type')
+        pcf_msrp_from = self.request.GET.get("pcf_msrp_from")
+        pcf_msrp_to = self.request.GET.get("pcf_msrp_to")
+
         #query_price = self.request.GET.get("price")
         price_from = self.request.GET.get("price_from")
         price_to = self.request.GET.get("price_to")
@@ -134,6 +148,19 @@ class CarList(generics.ListAPIView):
         query_aircooled = self.request.GET.get("aircooled")
         query_auto_trans = self.request.GET.get("auto_trans")
         query_model_number = self.request.GET.get("model_number")
+        pcf_id = self.request.GET.get("pcf_id")
+        pcf_body_type = self.request.GET.get("pcf_body_type")
+        pcf_listing_age_from = self.request.GET.get("pcf_listing_age_from")
+        pcf_listing_age_to = self.request.GET.get("pcf_listing_age_to")
+        bsf_msrp_from = self.request.GET.get("bsf_msrp_from")
+        bsf_msrp_to = self.request.GET.get("bsf_msrp_to")
+        bsf_msrp_from = self.request.GET.get("bsf_msrp_from")
+        bsf_model_year = self.request.GET.get("bsf_model_year")
+        bsf_model_detail = self.request.GET.get("bsf_model_detail")
+        bsf_exterior = self.request.GET.get("bsf_exterior")
+        bsf_interior = self.request.GET.get("bsf_interior")
+        bsf_production_month = self.request.GET.get("bsf_production_month")
+
         try:
             sort = self.request.GET.get("sort")
         except Exception as e:
@@ -147,19 +174,38 @@ class CarList(generics.ListAPIView):
         print(sort)
         print(direction)
 
-        if query_title not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_title__icontains=query_title)).distinct()
+        if listing_year not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_year__icontains=listing_year)).distinct()
+        if listing_exterior_color not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_exterior_color__icontains=listing_exterior_color)).distinct()
+        if listing_interior_color not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_interior_color__icontains=listing_interior_color)).distinct()
+        if vin not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin_code__iexact=vin)).distinct()
+        if listing_transmission not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_transmission__icontains=listing_transmission)).distinct()
+        if listing_engine_size not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_engine_size__icontains=listing_engine_size)).distinct()
+        if listing_body_type not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_body_type__icontains=listing_body_type)).distinct()
+        if listing_drivetrain not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_drivetrain__icontains=listing_drivetrain)).distinct()
+        if cond not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(cond__iexact=cond)).distinct()
+        if seller_type not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(seller_type__iexact=seller_type)).distinct()
 
-        # if query_price not in (None, 'undefined'):
-        #     price = query_price.split("-")
-        #     try:
-        #         price_from = price[0]
-        #         price_to = price[1]
-        #     except Exception as e:
-        #         price_from = 1000
-        #         price_to = 10000000
+        if query_title not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_title__icontains=query_title)).distinct()
 
         queryset_list = queryset_list.filter(Q(price__gt=price_from)).distinct()
         queryset_list = queryset_list.filter(Q(price__lt=price_to)).distinct()
+
+        queryset_list = queryset_list.filter(Q(pcf__gap_to_msrp__gt=pcf_msrp_from)).distinct()
+        queryset_list = queryset_list.filter(Q(pcf__gap_to_msrp__lt=pcf_msrp_to)).distinct()
+
+        queryset_list = queryset_list.filter(Q(pcf__listing_age__gt=pcf_listing_age_from)).distinct()
+        queryset_list = queryset_list.filter(Q(pcf__listing_age__lt=pcf_listing_age_to)).distinct()
+
+        queryset_list = queryset_list.filter(Q(vin__msrp__gt=bsf_msrp_from)).distinct()
+        queryset_list = queryset_list.filter(Q(vin__msrp__lt=bsf_msrp_to)).distinct()
+
+        if pcf_id not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(pcf__vid__iexact=pcf_id)).distinct()
+        if pcf_body_type not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(pcf__body_type__icontains=pcf_body_type)).distinct()
+        if bsf_model_year not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin__model_year__iexact=bsf_model_year)).distinct()
+        if bsf_model_detail not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin__model_detail__icontains=bsf_model_detail)).distinct()
+        if bsf_exterior not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin__color__icontains=bsf_exterior)).distinct()
+        if bsf_interior not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin__interior__icontains=bsf_interior)).distinct()
+        if bsf_production_month not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin__production_month__icontains=bsf_production_month)).distinct()
 
         if query_city not in ('', 'None', 'undefined', None): queryset_list = queryset_list.filter(Q(city__icontains=query_city)).distinct()
 
@@ -167,29 +213,9 @@ class CarList(generics.ListAPIView):
 
         if query_description not in ('', 'None', 'undefined', None): queryset_list = queryset_list.filter(Q(listing_description__icontains=query_description)).distinct()
 
-        # if query_mileage not in (None, 'undefined', None):
-        #     mileage = query_mileage.split("-")
-        #
-        #     try:
-        #         mileage_from = mileage[0]
-        #         mileage_to = mileage[1]
-        #     except Exception as e:
-        #         mileage_from = 0
-        #         mileage_to = 198000
-
         queryset_list = queryset_list.filter(Q(mileage__gt=mileage_from)).distinct()
 
         queryset_list = queryset_list.filter(Q(mileage__lt=mileage_to)).distinct()
-
-        # if query_year not in (None, 'undefined'):
-        #     year = query_year.split("-")
-        #
-        #     try:
-        #         year_from = year[0]
-        #         year_to = year[1]
-        #     except Exception as e:
-        #         year_from = 1955
-        #         year_to = year[0]
 
         queryset_list = queryset_list.filter(Q(listing_year__gt=year_from)).distinct()
 
@@ -254,9 +280,9 @@ class CarList(generics.ListAPIView):
                 elif query == 'auto':
                     query = 'automatic'
                     words.append(query)
-                elif query == 'turbo':
-                    query = 'automatic'
-                    words.append(query)
+                #elif query == 'turbo':
+                #    query = 'automatic'
+                #    words.append(query)
                 elif query == 'long-hood':
                     query = 'long-hood'
                     words.append(query)
@@ -567,7 +593,7 @@ class EmailView(generics.ListAPIView):
         email = request.data.get("email")
         subject = request.data.get("subject")
         content = request.data.get("content")
-        print(email)
+        send_mail('test', content, 'test@gmail.com', [settings.EMAIL_HOST_USER], fail_silently=False )
         return Response('ok')
 
 class BuildSheetView(generics.ListAPIView):
