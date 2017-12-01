@@ -36,7 +36,7 @@ class BSF(models.Model):
     model_year = models.IntegerField(max_length=4)
     model_detail = models.TextField()
     color = models.TextField()
-    production_month = models.DateField(max_length=7)
+    production_month = models.DateField(max_length=10)
     interior = models.TextField()
 
 class BSF_Options(models.Model):
