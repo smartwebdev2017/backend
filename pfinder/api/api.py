@@ -4,8 +4,9 @@ from django.db.models import Q
 import operator
 from rest_framework.filters import  SearchFilter, OrderingFilter
 from django.conf import settings
-from .serializers import UserSerializer, PostSerializer, PhotoSerializer, CarSerializer, SiteSerializer, CitySerializer, StateSerializer, BuildSheetSerializer, BuildSheetOptionsSerializer, PCFModelNumberSerializer
-from .models import User, Post, Photo, Car, Site, City, State, BSF, PCF
+from .serializers import UserSerializer, PostSerializer, PhotoSerializer, CarSerializer, SiteSerializer, CitySerializer, \
+    StateSerializer, BuildSheetSerializer, BuildSheetOptionsSerializer, PCFModelNumberSerializer, EngineSizeSearializer, PCFBodySerializer
+from .models import User, Post, Photo, Car, Site, City, State, BSF, PCF, Engine_size, Pcf_body
 from .permissions import PostAuthorCanEditPermission
 from rest_framework import views, viewsets
 import rest_framework_filters as filters
@@ -26,6 +27,7 @@ from decimal import Decimal
 from .serializers import SearchSerializer
 from itertools import chain
 from django.core.mail import send_mail
+import datetime
 
 class UserMixin(object):
     model = User
@@ -113,11 +115,12 @@ class CarList(generics.ListAPIView):
     def get_queryset(self, *args, **kwargs):
         #queryset_list = Car.objects.all()
         queryset_list = Car.objects.select_related('pcf', 'site', 'vin','vdf', 'vhf').all()
-        listing_year = self.request.GET.get("listing_year")
+
         query_title = self.request.GET.get("title")
         listing_exterior_color = self.request.GET.get('listing_exterior_color')
         listing_interior_color = self.request.GET.get('listing_interior_color')
         vin = self.request.GET.get('vin')
+        listing_date = self.request.GET.get("listing_date")
         listing_transmission = self.request.GET.get('listing_transmission')
         listing_engine_size = self.request.GET.get('listing_engine_size')
         listing_body_type = self.request.GET.get('listing_body_type')
@@ -148,18 +151,21 @@ class CarList(generics.ListAPIView):
         query_aircooled = self.request.GET.get("aircooled")
         query_auto_trans = self.request.GET.get("auto_trans")
         query_model_number = self.request.GET.get("model_number")
+
         pcf_id = self.request.GET.get("pcf_id")
         pcf_body_type = self.request.GET.get("pcf_body_type")
         pcf_listing_age_from = self.request.GET.get("pcf_listing_age_from")
         pcf_listing_age_to = self.request.GET.get("pcf_listing_age_to")
-        bsf_msrp_from = self.request.GET.get("bsf_msrp_from")
+        #bsf_msrp_from = self.request.GET.get("bsf_msrp_from")
         bsf_msrp_to = self.request.GET.get("bsf_msrp_to")
         bsf_msrp_from = self.request.GET.get("bsf_msrp_from")
-        bsf_model_year = self.request.GET.get("bsf_model_year")
+        bsf_model_year_from = self.request.GET.get("bsf_model_year_from")
+        bsf_model_year_to = self.request.GET.get("bsf_model_year_to")
         bsf_model_detail = self.request.GET.get("bsf_model_detail")
         bsf_exterior = self.request.GET.get("bsf_exterior")
         bsf_interior = self.request.GET.get("bsf_interior")
-        bsf_production_month = self.request.GET.get("bsf_production_month")
+        bsf_production_month_from = self.request.GET.get("bsf_production_month_from")
+        bsf_production_month_to = self.request.GET.get("bsf_production_month_to")
 
         try:
             sort = self.request.GET.get("sort")
@@ -174,7 +180,7 @@ class CarList(generics.ListAPIView):
         print(sort)
         print(direction)
 
-        if listing_year not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_year__icontains=listing_year)).distinct()
+        if listing_date not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(created__icontains=listing_date)).distinct()
         if listing_exterior_color not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_exterior_color__icontains=listing_exterior_color)).distinct()
         if listing_interior_color not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_interior_color__icontains=listing_interior_color)).distinct()
         if vin not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin_code__iexact=vin)).distinct()
@@ -187,25 +193,38 @@ class CarList(generics.ListAPIView):
 
         if query_title not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_title__icontains=query_title)).distinct()
 
-        queryset_list = queryset_list.filter(Q(price__gt=price_from)).distinct()
-        queryset_list = queryset_list.filter(Q(price__lt=price_to)).distinct()
+        if price_from not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(price__gt=price_from)).distinct()
+        if price_to not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(price__lt=price_to)).distinct()
 
-        queryset_list = queryset_list.filter(Q(pcf__gap_to_msrp__gt=pcf_msrp_from)).distinct()
-        queryset_list = queryset_list.filter(Q(pcf__gap_to_msrp__lt=pcf_msrp_to)).distinct()
+        if pcf_msrp_from not in ('', 'None', 'undefined', None): queryset_list = queryset_list.filter(Q(pcf__gap_to_msrp__gt=pcf_msrp_from)).distinct()
+        if pcf_msrp_to not in ('', 'None', 'undefined', None): queryset_list = queryset_list.filter(Q(pcf__gap_to_msrp__lt=pcf_msrp_to)).distinct()
+
+        queryset_list = queryset_list.filter(Q(vin__model_year__gt=bsf_model_year_from)).distinct()
+        queryset_list = queryset_list.filter(Q(vin__model_year__lt=bsf_model_year_to)).distinct()
 
         queryset_list = queryset_list.filter(Q(pcf__listing_age__gt=pcf_listing_age_from)).distinct()
         queryset_list = queryset_list.filter(Q(pcf__listing_age__lt=pcf_listing_age_to)).distinct()
 
-        queryset_list = queryset_list.filter(Q(vin__msrp__gt=bsf_msrp_from)).distinct()
-        queryset_list = queryset_list.filter(Q(vin__msrp__lt=bsf_msrp_to)).distinct()
+        if bsf_msrp_from not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin__msrp__gte=bsf_msrp_from)).distinct()
+        if bsf_msrp_to not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin__msrp__lte=bsf_msrp_to)).distinct()
 
         if pcf_id not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(pcf__vid__iexact=pcf_id)).distinct()
         if pcf_body_type not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(pcf__body_type__icontains=pcf_body_type)).distinct()
-        if bsf_model_year not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin__model_year__iexact=bsf_model_year)).distinct()
+        #if bsf_model_year not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin__model_year__iexact=bsf_model_year)).distinct()
         if bsf_model_detail not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin__model_detail__icontains=bsf_model_detail)).distinct()
         if bsf_exterior not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin__color__icontains=bsf_exterior)).distinct()
         if bsf_interior not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin__interior__icontains=bsf_interior)).distinct()
-        if bsf_production_month not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin__production_month__icontains=bsf_production_month)).distinct()
+
+        if bsf_production_month_from not in ('', None, 'undefined'):
+            print(int(bsf_production_month_from,10))
+            queryset_list = queryset_list.filter(Q(vin__production_month__year__gte=bsf_production_month_from)).distinct()
+
+        if bsf_production_month_to not in ('', None, 'undefined'):
+           queryset_list = queryset_list.filter(Q(vin__production_month__year__lte=bsf_production_month_to)).distinct()
+
+        #if bsf_production_month_from not in ('', None, 'undefined') and bsf_production_month_to not in ('', None, 'undefined'):
+        #    queryset_list = queryset_list.filter(Q(vin__production_month__range=('01/' + bsf_production_month_from, '01/' + bsf_production_month_to))).distinct()
+        #if bsf_production_month_to not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin__production_month__lt=bsf_production_month_to)).distinct()
 
         if query_city not in ('', 'None', 'undefined', None): queryset_list = queryset_list.filter(Q(city__icontains=query_city)).distinct()
 
@@ -213,9 +232,8 @@ class CarList(generics.ListAPIView):
 
         if query_description not in ('', 'None', 'undefined', None): queryset_list = queryset_list.filter(Q(listing_description__icontains=query_description)).distinct()
 
-        queryset_list = queryset_list.filter(Q(mileage__gt=mileage_from)).distinct()
-
-        queryset_list = queryset_list.filter(Q(mileage__lt=mileage_to)).distinct()
+        if mileage_from not in ('', 'None', 'undefined', None): queryset_list = queryset_list.filter(Q(mileage__gt=mileage_from)).distinct()
+        if mileage_to not in ('', 'None', 'undefined', None): queryset_list = queryset_list.filter(Q(mileage__lt=mileage_to)).distinct()
 
         queryset_list = queryset_list.filter(Q(listing_year__gt=year_from)).distinct()
 
@@ -593,8 +611,25 @@ class EmailView(generics.ListAPIView):
         email = request.data.get("email")
         subject = request.data.get("subject")
         content = request.data.get("content")
-        send_mail('test', content, 'test@gmail.com', [settings.EMAIL_HOST_USER], fail_silently=False )
+        print(settings.EMAIL_HOST_USER)
+        send_mail('test', content, settings.EMAIL_HOST_USER, [settings.EMAIL_HOST_USER], fail_silently=False )
         return Response('ok')
+
+class EngineView(generics.ListAPIView):
+
+    queryset = Engine_size.objects.all()
+    serializer_class = EngineSizeSearializer
+    search_fields = ['name']
+    permission_classes = [
+        PostAuthorCanEditPermission
+    ]
+
+class PcfbodyView(generics.ListAPIView):
+    queryset = Pcf_body.objects.all()
+    serializer_class = PCFBodySerializer
+    permission_classes = [
+        PostAuthorCanEditPermission
+    ]
 
 class BuildSheetView(generics.ListAPIView):
 

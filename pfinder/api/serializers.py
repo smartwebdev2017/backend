@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import User, Post, Photo, Car, Site, City, State, BSF, BSF_Options, PCF, VHF, VDF
+from .models import User, Post, Photo, Car, Site, City, State, BSF, BSF_Options, PCF, VHF, VDF, Engine_size, Pcf_body
 from django.contrib.auth import update_session_auth_hash
 
 def response(type_, label, data):
@@ -52,6 +52,17 @@ class StateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = State
+        fields = '__all__'
+
+class EngineSizeSearializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Engine_size
+        fields = '__all__'
+
+class PCFBodySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Pcf_body
         fields = '__all__'
 
 class BuildSheetOptionsSerializer(serializers.ModelSerializer):

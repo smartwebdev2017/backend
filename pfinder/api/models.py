@@ -36,7 +36,7 @@ class BSF(models.Model):
     model_year = models.IntegerField(max_length=4)
     model_detail = models.TextField()
     color = models.TextField()
-    production_month = models.CharField(max_length=7)
+    production_month = models.DateField(max_length=7)
     interior = models.TextField()
 
 class BSF_Options(models.Model):
@@ -109,8 +109,8 @@ class Car(models.Model):
     sold_date = models.CharField(max_length=30)
     listing_body_type = models.CharField(max_length=20)
     listing_drivetrain = models.CharField(max_length=10)
-    created = models.CharField(max_length=255)
-    updated = models.CharField(max_length=255)
+    created = models.DateField(max_length=255)
+    updated = models.DateField(max_length=255)
     vhf = models.ForeignKey(VHF, null=True, blank=True)
     vdf = models.ForeignKey(VDF, null=True, blank=True)
     pcf = models.ForeignKey(PCF, null=True, blank=True)
@@ -125,7 +125,11 @@ class State(models.Model):
 class RetryCar(models.Model):
     vin_code = models.CharField(max_length=17, default='')
 
+class Engine_size(models.Model):
+    name = models.CharField(max_length=10, null=False, blank=False)
 
+class Pcf_body(models.Model):
+    name = models.TextField()
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:

@@ -3,7 +3,7 @@ from django.conf.urls import url, include
 from .api import UserList, UserDetail
 from .api import PostList, PostDetail, UserPostList
 from .api import PhotoList, PhotoDetail, PostPhotoList, CarList, CarDetail, ActiveCarDetail, InactiveCarDetail, SiteList, CityList, \
-    StateList, BuildSheetView, SearchView, VincodesView, EmailView
+    StateList, BuildSheetView, SearchView, VincodesView, EmailView, EngineView, PcfbodyView
 
 user_urls = [
     url(r'^/(?P<username>[0-9a-zA-Z_-]+)/posts$', UserPostList.as_view(), name='userpost-list'),
@@ -61,6 +61,12 @@ pcf_urls = [
 email_urls = [
     url(r'^$', EmailView.as_view(), name='email')
 ]
+engine_urls = [
+    url(r'^$', EngineView.as_view(), name='engine')
+]
+pcfbody_urls = [
+    url(r'^$', PcfbodyView.as_view(), name='pcfbody')
+]
 urlpatterns = [
     url(r'^users', include(user_urls)),
     url(r'^posts', include(post_urls)),
@@ -75,4 +81,6 @@ urlpatterns = [
     url(r'^active', include(active_urls)),
     url(r'^inactive', include(inactive_urls)),
     url(r'^email', include(email_urls)),
+    url(r'^engine', include(engine_urls)),
+    url(r'^pcfbody', include(pcfbody_urls)),
 ]
