@@ -199,8 +199,8 @@ class CarList(generics.ListAPIView):
         if pcf_msrp_from not in ('', 'None', 'undefined', None): queryset_list = queryset_list.filter(Q(pcf__gap_to_msrp__gt=pcf_msrp_from)).distinct()
         if pcf_msrp_to not in ('', 'None', 'undefined', None): queryset_list = queryset_list.filter(Q(pcf__gap_to_msrp__lt=pcf_msrp_to)).distinct()
 
-        queryset_list = queryset_list.filter(Q(vin__model_year__gt=bsf_model_year_from)).distinct()
-        queryset_list = queryset_list.filter(Q(vin__model_year__lt=bsf_model_year_to)).distinct()
+        if bsf_model_year_from not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin__model_year__gt=bsf_model_year_from)).distinct()
+        if bsf_model_year_to not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin__model_year__lt=bsf_model_year_to)).distinct()
 
         queryset_list = queryset_list.filter(Q(pcf__listing_age__gt=pcf_listing_age_from)).distinct()
         queryset_list = queryset_list.filter(Q(pcf__listing_age__lt=pcf_listing_age_to)).distinct()
