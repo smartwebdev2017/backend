@@ -282,7 +282,7 @@ class CarList(generics.ListAPIView):
 
         try:
             queries = self.request.GET.get('keyword').lower()
-            queries = queries.replace(r"/", '')
+            queries = queries.replace(r"-", '')
         except Exception as e:
             queries = None
 
