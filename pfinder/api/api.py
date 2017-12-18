@@ -214,7 +214,7 @@ class CarList(generics.ListAPIView):
         if bsf_msrp_to not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin__msrp__lte=bsf_msrp_to)).distinct()
 
         if pcf_id not in ('', None, 'undefined'):
-            pcf_id = pcf_id.split(r"/")
+            pcf_id = pcf_id.split(r"-")
             print(pcf_id)
             pcf_id_value = pcf_id[0] + pcf_id[1]
             queryset_list = queryset_list.filter(Q(pcf__vid__iexact=pcf_id_value)).distinct()
@@ -405,6 +405,8 @@ class CarList(generics.ListAPIView):
                     ]
                     queryset_list = queryset_list.filter(reduce(operator.or_, q_list)).distinct()
         if sort not in ('', 'None', 'undefined', None):
+            print('---------')
+            print(direction)
             if direction =='desc':
                 queryset_list = queryset_list.order_by('-' + sort)
             elif direction =='asc':
