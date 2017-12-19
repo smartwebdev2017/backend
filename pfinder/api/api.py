@@ -165,6 +165,7 @@ class CarList(generics.ListAPIView):
         bsf_model_detail = self.request.GET.get("bsf_model_detail")
         bsf_exterior = self.request.GET.get("bsf_exterior")
         bsf_interior = self.request.GET.get("bsf_interior")
+        bsf_options = self.request.GET.get('bsf_options')
         bsf_production_month_from = self.request.GET.get("bsf_production_month_from")
         bsf_production_month_to = self.request.GET.get("bsf_production_month_to")
         sold_state = self.request.GET.get('listing_sold_status')
@@ -223,6 +224,13 @@ class CarList(generics.ListAPIView):
         if bsf_model_detail not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin__model_detail__icontains=bsf_model_detail)).distinct()
         if bsf_exterior not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin__color__icontains=bsf_exterior)).distinct()
         if bsf_interior not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin__interior__icontains=bsf_interior)).distinct()
+        if bsf_options not in ('', None, 'undefined'):
+            q_option_list = [
+                Q(vin__options__code__icontains=bsf_options),
+                Q(vin__options__value__icontains=bsf_options)
+            ]
+
+            queryset_list = queryset_list.filter(reduce(operator.or_, q_option_list)).distinct()
 
         if bsf_production_month_from not in ('', None, 'undefined'):
             print(int(bsf_production_month_from,10))
