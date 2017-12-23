@@ -620,7 +620,7 @@ class VincodesView(generics.ListAPIView):
     ]
 
     def get_queryset(self):
-        return PCF.objects.values('model_number').distinct()
+        return PCF.objects.order_by('model_number').values('model_number').distinct()
 
 class EmailView(generics.ListAPIView):
 
