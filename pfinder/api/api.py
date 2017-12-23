@@ -226,13 +226,11 @@ class CarList(generics.ListAPIView):
         if bsf_interior not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin__interior__icontains=bsf_interior)).distinct()
         if bsf_options not in ('', None, 'undefined'):
             q_option_list = [
-                Q(vin__options__value__icontains=bsf_options),
-                Q(vin__options__value__icontains=bsf_options)
+               Q(vin__options__code__icontains=bsf_options),
+               Q(vin__options__value__icontains=bsf_options)
             ]
-            queryset_list = queryset_list.filter(Q(vin__options__value__icontains=bsf_options)).distinct()
-
-
             queryset_list = queryset_list.filter(reduce(operator.or_, q_option_list)).distinct()
+
         if bsf_production_month_from not in ('', None, 'undefined'):
             print(int(bsf_production_month_from,10))
             queryset_list = queryset_list.filter(Q(vin__production_month__year__gte=bsf_production_month_from)).distinct()
