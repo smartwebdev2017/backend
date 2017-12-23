@@ -62,8 +62,8 @@ class EngineSizeSearializer(serializers.ModelSerializer):
 
 class PCFBodySerializer(serializers.ModelSerializer):
     class Meta:
-        model = Pcf_body
-        fields = '__all__'
+        model = PCF
+        fields = ('body_type',)
 
 class BuildSheetOptionsSerializer(serializers.ModelSerializer):
 
