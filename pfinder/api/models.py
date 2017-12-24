@@ -92,7 +92,7 @@ class Car(models.Model):
     mileage = models.IntegerField(max_length=11)
     city = models.CharField(max_length=20)
     state = models.CharField(max_length=10)
-    listing_date = models.DateField(max_length=255)
+    listing_date = models.CharField(max_length=30)
     price = models.IntegerField(max_length=11)
     cond = models.CharField(max_length=10)
     seller_type = models.CharField(max_length=15)
