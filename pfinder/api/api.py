@@ -193,7 +193,7 @@ class CarList(generics.ListAPIView):
         if listing_engine_size not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_engine_size__icontains=listing_engine_size)).distinct()
         if listing_body_type not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_body_type__icontains=listing_body_type)).distinct()
         if listing_drivetrain not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_drivetrain__icontains=listing_drivetrain)).distinct()
-        #if sold_state not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(sold_state__iexact=sold_state)).distinct()
+        if sold_state not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(sold_state__iexact=sold_state)).distinct()
 
         if cond not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(cond__iexact=cond)).distinct()
         if seller_type not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(seller_type__iexact=seller_type)).distinct()
