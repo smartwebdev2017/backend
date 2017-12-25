@@ -114,6 +114,7 @@ class CarList(generics.ListAPIView):
     #filter_class = TitleFilter
     def get_queryset(self, *args, **kwargs):
         #queryset_list = Car.objects.all()
+
         queryset_list = Car.objects.select_related('pcf', 'site', 'vin','vdf', 'vhf').all()
 
         query_title = self.request.GET.get("title")
@@ -168,7 +169,7 @@ class CarList(generics.ListAPIView):
         bsf_options = self.request.GET.get('bsf_options')
         bsf_production_month_from = self.request.GET.get("bsf_production_month_from")
         bsf_production_month_to = self.request.GET.get("bsf_production_month_to")
-        sold_state = self.request.GET.get('listing_sold_status')
+        #sold_state = self.request.GET.get('listing_sold_status')
 
         try:
             sort = self.request.GET.get("sort")
@@ -192,7 +193,7 @@ class CarList(generics.ListAPIView):
         if listing_engine_size not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_engine_size__icontains=listing_engine_size)).distinct()
         if listing_body_type not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_body_type__icontains=listing_body_type)).distinct()
         if listing_drivetrain not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_drivetrain__icontains=listing_drivetrain)).distinct()
-        if sold_state not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(sold_state__iexact=sold_state)).distinct()
+        #if sold_state not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(sold_state__iexact=sold_state)).distinct()
 
         if cond not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(cond__iexact=cond)).distinct()
         if seller_type not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(seller_type__iexact=seller_type)).distinct()
@@ -208,16 +209,19 @@ class CarList(generics.ListAPIView):
         if bsf_model_year_from not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin__model_year__gt=bsf_model_year_from)).distinct()
         if bsf_model_year_to not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin__model_year__lt=bsf_model_year_to)).distinct()
 
-        queryset_list = queryset_list.filter(Q(pcf__listing_age__gt=pcf_listing_age_from)).distinct()
-        queryset_list = queryset_list.filter(Q(pcf__listing_age__lt=pcf_listing_age_to)).distinct()
+        #queryset_list = queryset_list.filter(Q(pcf__listing_age__gt=pcf_listing_age_from)).distinct()
+        #queryset_list = queryset_list.filter(Q(pcf__listing_age__lt=pcf_listing_age_to)).distinct()
 
         if bsf_msrp_from not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin__msrp__gte=bsf_msrp_from)).distinct()
         if bsf_msrp_to not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin__msrp__lte=bsf_msrp_to)).distinct()
 
         if pcf_id not in ('', None, 'undefined'):
-            pcf_id = pcf_id.split(r"-")
-            print(pcf_id)
-            pcf_id_value = pcf_id[0] + pcf_id[1]
+            if pcf_id.find('-') > -1:
+                pcf_id = pcf_id.split(r"-")
+                print(pcf_id)
+                pcf_id_value = pcf_id[0] + pcf_id[1]
+            else:
+                pcf_id_value = pcf_id
             queryset_list = queryset_list.filter(Q(pcf__vid__iexact=pcf_id_value)).distinct()
         if pcf_body_type not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(pcf__body_type__icontains=pcf_body_type)).distinct()
         #if bsf_model_year not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin__model_year__iexact=bsf_model_year)).distinct()
@@ -287,11 +291,13 @@ class CarList(generics.ListAPIView):
         if query_model_number in ('', 'None', 'undefined', None): pass
         else: queryset_list = queryset_list.filter(Q(pcf__model_number__iexact=query_model_number)).distinct()
 
-        try:
-            queries = self.request.GET.get('keyword').lower()
+        #try:
+        queries = self.request.GET.get('keyword').lower()
+        if queries.find("-") > -1:
             queries = queries.replace(r"-", '')
-        except Exception as e:
-            queries = None
+        #except Exception as e:
+        #    queries = None
+        print(queries)
 
         if queries not in (None, 'undefined'):
             words = re.split('; | |, |\*|\n', queries)
@@ -357,7 +363,9 @@ class CarList(generics.ListAPIView):
                 elif query.find('cooled') != -1: queryset_list = queryset_list.filter(Q(pcf__air_cooled__iexact=1)).distinct()
                 else:
                     #queryset_list = queryset_list.filter(
+                    print('ok')
                     q_list = [
+                        Q(vin_code__iexact=query),
                         Q(listing_make__icontains=query),
                         Q(listing_model__icontains=query),
                         Q(listing_model_detail__icontains=query),
