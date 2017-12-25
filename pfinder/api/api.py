@@ -169,7 +169,7 @@ class CarList(generics.ListAPIView):
         bsf_options = self.request.GET.get('bsf_options')
         bsf_production_month_from = self.request.GET.get("bsf_production_month_from")
         bsf_production_month_to = self.request.GET.get("bsf_production_month_to")
-        #sold_state = self.request.GET.get('listing_sold_status')
+        sold_state = self.request.GET.get('listing_sold_status')
 
         try:
             sort = self.request.GET.get("sort")
