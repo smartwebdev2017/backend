@@ -111,11 +111,11 @@ class PCFModelNumberSerializer(serializers.ModelSerializer):
         model = PCF
         fields = ('model_number',)
 class CarSerializer(serializers.ModelSerializer):
-    site = SiteSerializer(required=True)
-    vin = BuildSheetSerializer(required=True)
-    pcf = PCFSerializer(required=True)
-    vdf = VDFSerializer(required=True)
-    vhf = VHFSerializer(required=True)
+    site = SiteSerializer(required=False,read_only=True)
+    vin = BuildSheetSerializer(required=False,read_only=True)
+    pcf = PCFSerializer(required=False,read_only=True)
+    vdf = VDFSerializer(required=False,read_only=True)
+    vhf = VHFSerializer(required=False,read_only=True)
 
     class Meta:
         model = Car
@@ -125,6 +125,7 @@ class CarSerializer(serializers.ModelSerializer):
     def setup_eager_loading(queryset):
         queryset = queryset.select_related('pcf')
         return queryset
+
 
 class SearchSerializer(serializers.Serializer):
 

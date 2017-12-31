@@ -5,7 +5,7 @@ import operator
 from rest_framework.filters import  SearchFilter, OrderingFilter
 from django.conf import settings
 from .serializers import UserSerializer, PostSerializer, PhotoSerializer, CarSerializer, SiteSerializer, CitySerializer, \
-    StateSerializer, BuildSheetSerializer, BuildSheetOptionsSerializer, PCFModelNumberSerializer, EngineSizeSearializer, PCFBodySerializer
+    StateSerializer, BuildSheetSerializer, BuildSheetOptionsSerializer, PCFModelNumberSerializer, EngineSizeSearializer, PCFSerializer, PCFBodySerializer
 from .models import User, Post, Photo, Car, Site, City, State, BSF, PCF, Engine_size, Pcf_body
 from .permissions import PostAuthorCanEditPermission
 from rest_framework import views, viewsets
@@ -27,7 +27,8 @@ from decimal import Decimal
 from .serializers import SearchSerializer
 from itertools import chain
 from django.core.mail import send_mail
-import datetime
+import datetime, random
+import json
 
 class UserMixin(object):
     model = User
@@ -188,7 +189,7 @@ class CarList(generics.ListAPIView):
         if listing_date_end not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(created__lte=listing_date_end)).distinct()
         if listing_exterior_color not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_exterior_color__icontains=listing_exterior_color)).distinct()
         if listing_interior_color not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_interior_color__icontains=listing_interior_color)).distinct()
-        if vin not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin_code__iexact=vin)).distinct()
+        if vin not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin_code__icontains=vin)).distinct()
         if listing_transmission not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_transmission__icontains=listing_transmission)).distinct()
         if listing_engine_size not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_engine_size__icontains=listing_engine_size)).distinct()
         if listing_body_type not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_body_type__icontains=listing_body_type)).distinct()
@@ -255,9 +256,8 @@ class CarList(generics.ListAPIView):
         if mileage_from not in ('', 'None', 'undefined', None): queryset_list = queryset_list.filter(Q(mileage__gt=mileage_from)).distinct()
         if mileage_to not in ('', 'None', 'undefined', None): queryset_list = queryset_list.filter(Q(mileage__lt=mileage_to)).distinct()
 
-        queryset_list = queryset_list.filter(Q(listing_year__gt=year_from)).distinct()
-
-        queryset_list = queryset_list.filter(Q(listing_year__lt=year_to)).distinct()
+        if year_from not in ('', 'None', 'undefined', None): queryset_list = queryset_list.filter(Q(listing_year__gt=year_from)).distinct()
+        if year_to not in ('', 'None', 'undefined', None): queryset_list = queryset_list.filter(Q(listing_year__lt=year_to)).distinct()
 
         if query_model not in ('', 'None', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_model__icontains=query_model)).distinct()
 
@@ -297,7 +297,6 @@ class CarList(generics.ListAPIView):
             queries = queries.replace(r"-", '')
         #except Exception as e:
         #    queries = None
-        print(queries)
 
         if queries not in (None, 'undefined'):
             words = re.split('; | |, |\*|\n', queries)
@@ -363,9 +362,8 @@ class CarList(generics.ListAPIView):
                 elif query.find('cooled') != -1: queryset_list = queryset_list.filter(Q(pcf__air_cooled__iexact=1)).distinct()
                 else:
                     #queryset_list = queryset_list.filter(
-                    print('ok')
                     q_list = [
-                        Q(vin_code__iexact=query),
+                        Q(vin_code__icontains=query),
                         Q(listing_make__icontains=query),
                         Q(listing_model__icontains=query),
                         Q(listing_model_detail__icontains=query),
@@ -395,7 +393,7 @@ class CarList(generics.ListAPIView):
                         Q(vin__color__iexact=query),
                         Q(vin__production_month__iexact=query),
                         Q(vin__interior__iexact=query),
-                        Q(vin__vin__iexact=query),
+                        Q(vin__vin__icontains=query),
                         Q(vin__options__value__icontains=query),
                         Q(vin__options__code__icontains=query),
                         Q(pcf__body_type__icontains=query),
@@ -661,31 +659,100 @@ class PcfbodyView(generics.ListAPIView):
         return PCF.objects.values('body_type').distinct()
 
 class BuildSheetView(generics.ListAPIView):
-
+    model = PCF, Site, Car
     permission_classes = [
         PostAuthorCanEditPermission
     ]
+    pcf = None
 
     def post(self, request, format=None):
-        vin = request.POST.get("vin")
+        vin = request.data.get("id")
+
+        if len(vin) != 17:
+            print('return')
+            return Response('ok')
+
+        data = Car.objects.filter(vin_code=vin)
+        if len(data) > 0:
+            car_serializer = CarSerializer(data, many=True)
+            return Response({'data':car_serializer.data})
 
         data = self.getBSinfo(vin)
+
+        if data['production_month'] != '':
+            dt = datetime.datetime.strptime(data['production_month'], '%m/%Y')
+            data['production_month'] = dt.date()
+        print(data)
         serializer = BuildSheetSerializer(data = data)
+
+        serializer.is_valid()
+        print(serializer.errors)
+
         if serializer.is_valid():
-            bsf = serializer.save()
-            print(bsf.id)
-            for item in data['options']:
+            bGen = False
+            while bGen == False:
+                newKey = ''.join(random.choice('01234567890ABCDEF') for i in range(6))
+                old_results = PCF.objects.filter(vid=newKey)
 
-                item['bsf'] = int(bsf.id)
-            print(data['options'])
-            bsf_option_serializer = BuildSheetOptionsSerializer(data = data['options'], many=True)
+                if len(old_results) == 0: bGen = True
 
-            if bsf_option_serializer.is_valid():
-                bsf_option_serializer.save()
+            newPCFData = {'longhood':0, 'widebody':0, 'pts':'0', 'pccb':0, 'color':'', 'body_type':'', 'air_cooled':0, 'gap_to_msrp':0, 'listing_age':0, 'lwb_seats':0, 'auto_trans':'',
+                          'option_code':'', 'option_description':'', 'placeholder':0, 'produced_usa':0, 'produced_globally':0, 'same_counts':0, 'vid':newKey, 'model_number':None}
 
-            return Response(serializer.data,status=status.HTTP_201_CREATED)
+            pcf_serializer = PCFSerializer(data = newPCFData)
+            pcf_serializer.is_valid()
+            print(pcf_serializer.errors)
+
+            if pcf_serializer.is_valid():
+                new_pcf = pcf_serializer.save()
+                print(new_pcf)
+                bsf = serializer.save()
+
+                for item in data['options']:
+                    item['bsf'] = int(bsf.id)
+
+                bsf_option_serializer = BuildSheetOptionsSerializer(data = data['options'], many=True)
+
+                if bsf_option_serializer.is_valid():
+                   bsf_option_serializer.save()
+
+                car = Car(vin_code=vin,
+                              listing_make=None,
+                              listing_model=None,
+                              listing_trim=None,
+                              listing_model_detail=bsf.model_detail,
+                              listing_year=None,
+                              mileage=None,
+                              city=None,
+                              state=None,
+                              listing_date=None,
+                              price=None,
+                              cond=None,
+                              seller_type='',
+                              vhr_link='',
+                              listing_exterior_color=bsf.color,
+                              listing_interior_color=bsf.interior,
+                              listing_transmission=None,
+                              listing_transmission_detail=None,
+                              listing_title=None,
+                              listing_url=None,
+                              listing_engine_size=None,
+                              listing_description='Build Sheet Lookup',
+                              sold_state=1,
+                              sold_date=None,
+                              pcf= new_pcf,
+                              vin=bsf,
+                              listing_body_type=None,
+                              listing_drivetrain=None,
+                              created=datetime.datetime.now().date(),
+                              updated=datetime.datetime.now().date(),
+                              active=0)
+                new_car = car.save()
+                data = Car.objects.filter(vin_code=bsf.vin)
+                car_serializer = CarSerializer(data, many=True)
+
+            return Response({'data':car_serializer.data})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
     def getBSinfo(self, vin):
         data = {}
@@ -700,8 +767,8 @@ class BuildSheetView(generics.ListAPIView):
             model = re.search('(\d{4}\s)(.*?\s)(.*?$)', title).group(2)
             model_detail =  model + re.search('(\d{4}\s)(.*?\s)(.*?$)', title).group(3)
 
-            data['model_year'] = model_year
-            data['model'] = model
+            data['model_year'] = int(model_year)
+            #data['model'] = model
             data['model_detail'] = model_detail
             data['vin'] = vin
 
@@ -712,8 +779,8 @@ class BuildSheetView(generics.ListAPIView):
         vehicle = bs.find('div', {'class':'vehicle'})
         vehicle_labels = vehicle.findAll('div', {'class':'label'})
         vehicle_values = vehicle.findAll('div', {'class':'value'})
+        data['warranty_start'] = ''
 
-        print('Vehicle')
         for i in range(0, len(vehicle_labels)):
             if vehicle_labels[i].text == 'Division:':
                 pass
@@ -723,6 +790,10 @@ class BuildSheetView(generics.ListAPIView):
                 data['production_month'] = vehicle_values[i].text
             elif vehicle_labels[i].text == 'Price:':
                 data['msrp'] = vehicle_values[i].text.replace("$", "").replace(",","")
+                if data['msrp']!='':
+                    data['msrp'] = int(float(data['msrp']))
+                else:
+                    data['msrp'] = 0
             elif vehicle_labels[i].text == 'Exterior:':
                 data['color'] = vehicle_values[i].text
             elif vehicle_labels[i].text == 'Interior:':
@@ -743,7 +814,6 @@ class BuildSheetView(generics.ListAPIView):
             option['code'] = options_labels[i].text
             option['value'] = options_values[i].text
             data['options'].append(option)
-            print(option)
+            #print(option)
 
-        print(data)
         return data
