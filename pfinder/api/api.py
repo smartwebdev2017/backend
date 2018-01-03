@@ -439,7 +439,7 @@ class CarDetail(generics.ListAPIView):
         vin = self.kwargs['vid']
         queryset_list = Car.objects.filter(pcf__vid=vin)
         #queryset_list = queryset_list.filter(active=1)
-        return queryset_list
+        return queryset_list.order_by('listing_date')
 
 class ActiveCarDetail(generics.ListAPIView):
     model = Car
@@ -453,7 +453,7 @@ class ActiveCarDetail(generics.ListAPIView):
         vin = self.kwargs['vid']
         queryset_list = Car.objects.filter(pcf__vid=vin)
         queryset_list = queryset_list.filter(active=1)
-        return queryset_list
+        return queryset_list.order_by('listing_date')
 
 class InactiveCarDetail(generics.ListAPIView):
     model = Car
@@ -467,7 +467,7 @@ class InactiveCarDetail(generics.ListAPIView):
         vin = self.kwargs['vid']
         queryset_list = Car.objects.filter(pcf__vid=vin)
         queryset_list = queryset_list.filter(active=0)
-        return queryset_list
+        return queryset_list.order_by('listing_date')
 
 class PhotoDetail(PhotoMixin, generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [
@@ -725,11 +725,11 @@ class BuildSheetView(generics.ListAPIView):
                               listing_model=None,
                               listing_trim=None,
                               listing_model_detail=bsf.model_detail,
-                              listing_year=None,
+                              listing_year=bsf.model_year,
                               mileage=None,
                               city=None,
                               state=None,
-                              listing_date=None,
+                              listing_date=datetime.datetime.now().strftime('%m-%d-%Y'),
                               price=None,
                               cond=None,
                               seller_type='',
@@ -738,7 +738,7 @@ class BuildSheetView(generics.ListAPIView):
                               listing_interior_color=bsf.interior,
                               listing_transmission=None,
                               listing_transmission_detail=None,
-                              listing_title=None,
+                              listing_title=bsf.model_detail,
                               listing_url=None,
                               listing_engine_size=None,
                               listing_description='Build Sheet Lookup',
