@@ -439,7 +439,7 @@ class CarDetail(generics.ListAPIView):
         vin = self.kwargs['vid']
         queryset_list = Car.objects.filter(pcf__vid=vin)
         #queryset_list = queryset_list.filter(active=1)
-        return queryset_list.order_by('listing_date')
+        return queryset_list.order_by('-listing_date')
 
 class ActiveCarDetail(generics.ListAPIView):
     model = Car
@@ -453,7 +453,7 @@ class ActiveCarDetail(generics.ListAPIView):
         vin = self.kwargs['vid']
         queryset_list = Car.objects.filter(pcf__vid=vin)
         queryset_list = queryset_list.filter(active=1)
-        return queryset_list.order_by('listing_date')
+        return queryset_list.order_by('-listing_date')
 
 class InactiveCarDetail(generics.ListAPIView):
     model = Car
@@ -467,7 +467,7 @@ class InactiveCarDetail(generics.ListAPIView):
         vin = self.kwargs['vid']
         queryset_list = Car.objects.filter(pcf__vid=vin)
         queryset_list = queryset_list.filter(active=0)
-        return queryset_list.order_by('listing_date')
+        return queryset_list.order_by('-listing_date')
 
 class PhotoDetail(PhotoMixin, generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [
