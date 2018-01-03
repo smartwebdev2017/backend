@@ -677,7 +677,11 @@ class BuildSheetView(generics.ListAPIView):
             car_serializer = CarSerializer(data, many=True)
             return Response({'data':car_serializer.data})
 
+        result = self.parsing_vin(vin)
         data = self.getBSinfo(vin)
+        data['model_number'] = result['model_number']
+        data['Vin'] = vin
+        pcf_data = self.getPCFinfo(data)
 
         if data['production_month'] != '':
             dt = datetime.datetime.strptime(data['production_month'], '%m/%Y')
@@ -696,8 +700,8 @@ class BuildSheetView(generics.ListAPIView):
 
                 if len(old_results) == 0: bGen = True
 
-            newPCFData = {'longhood':0, 'widebody':0, 'pts':'0', 'pccb':0, 'color':'', 'body_type':'', 'air_cooled':0, 'gap_to_msrp':0, 'listing_age':0, 'lwb_seats':0, 'auto_trans':'',
-                          'option_code':'', 'option_description':'', 'placeholder':0, 'produced_usa':0, 'produced_globally':0, 'same_counts':0, 'vid':newKey, 'model_number':None}
+            newPCFData = {'longhood':pcf_data['longhood'], 'widebody':pcf_data['widebody'], 'pts':pcf_data['pts'], 'pccb':pcf_data['pccb'], 'color':pcf_data['color'], 'body_type':pcf_data['body_type'], 'air_cooled':pcf_data['air_cooled'], 'gap_to_msrp':0, 'listing_age':0, 'lwb_seats':pcf_data['lwb_seats'], 'auto_trans':pcf_data['auto_trans'],
+                          'option_code':'', 'option_description':'', 'placeholder':0, 'produced_usa':0, 'produced_globally':0, 'same_counts':0, 'vid':newKey, 'model_number':pcf_data['model_number']}
 
             pcf_serializer = PCFSerializer(data = newPCFData)
             pcf_serializer.is_valid()
@@ -753,7 +757,192 @@ class BuildSheetView(generics.ListAPIView):
 
             return Response({'data':car_serializer.data})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def getPCFinfo(self, vin_data):
+        try:
+            year = int(vin_data['model_year'])
+        except Exception as e:
+            year = 0
 
+        vin = vin_data['Vin']
+        #if len(vin) < 17:
+        #    return
+        bs_option_description = ''
+        for option in vin_data['options']:
+            bs_option_description = bs_option_description + option['value'] + ','
+        try:
+            listing_year=0
+        except Exception as e:
+            listing_year = 0
+
+        listing_title = ''
+        listing_transmission = ''
+        model_detail = vin_data['model_detail'].lower()
+
+        listing_model_detail = ''
+        listing_description = ''
+        bs_option_description = bs_option_description.lower()
+        listing_color = ''
+        #gap_to_msrp = vin_data['gap_to_msrp']
+
+        auto_trans = ''
+        longhood = 0
+        widebody = 0
+        pccb = 0
+        pts = 0
+        air_cooled = 0
+        lwb = 0
+        body_type =''
+
+        model_number = vin_data['model_number']
+
+        # if (vin[3] == 'Z') and (vin[4] == 'Z') and (vin[5] == 'Z') : # RoW car
+        #     model_number = vin[6] + vin[7] + vin[11]
+        # else:
+        #     model_number = '9' + vin[7] + vin[11]
+
+        if ((year in (1963, 1973)) or (listing_year in (1963, 1973))) and ((model_detail.find('911') > -1) or (model_detail.find('912') > -1 ) or (listing_model_detail.find('911') > -1) or (listing_model_detail.find('912') > -1 )):
+            longhood = 1
+
+        listing_model_detail = listing_model_detail.replace('porsche', '')
+        model_detail = model_detail.replace('porsche', '')
+
+        if model_number == '930':
+            widebody = 1
+
+        if  (model_number == '964') and ((model_detail.find('turbo') > -1 ) or (listing_model_detail.find('turbo') > -1)):
+            widebody = 1
+
+        if  (model_number.find('991') > -1) and ((model_detail.find('turbo') > -1 ) or (listing_model_detail.find('turbo') > -1)):
+            widebody = 1
+
+        if  (model_number == '993') and ((model_detail.find('turbo') > -1 ) or (listing_model_detail.find('turbo') > -1)):
+            widebody = 1
+
+        if  (model_number == '996') and ((model_detail.find('turbo') > -1 ) or (listing_model_detail.find('turbo') > -1)):
+            widebody = 1
+
+        if  (model_number.find('997') > -1 ) and ((model_detail.find('turbo') > -1 ) or (listing_model_detail.find('turbo') > -1)):
+            widebody = 1
+
+        if  ((listing_model_detail.find('SSE') > -1) or (model_detail.find('SSE') > -1)  or (listing_description.find('SSE') > -1) or (listing_model_detail.find('super sport equipment') > -1 )
+             or (model_detail.find('super sport equipment') > -1) or (listing_description.find('super sport equipment') > -1)) and (listing_year in (1984, 1989) or year in (1984, 1989)):
+            widebody = 1
+        if (listing_model_detail.find('widebody') > -1 ) or (model_detail.find('widebody') > -1) or (listing_title.find('widebody') > -1) or \
+            (listing_model_detail.find('wide body') > -1 ) or (model_detail.find('wide body') > -1) or (listing_title.find('wide body') > -1):
+            widebody = 1
+
+        if  (model_number == '964') and ((model_detail.find('anniversary') > -1 ) or (listing_model_detail.find('anniversary') > -1)):
+            widebody = 1
+
+        if  (model_number == '993') and ((model_detail.find('2s') > -1 ) or (listing_model_detail.find('4s') > -1)):
+            widebody = 1
+
+        if  (model_number.find('997') > -1) and ((model_detail.find(' 4s') > -1 ) or (listing_model_detail.find(' 4s') > -1) or (model_detail.find(' 4') > -1 ) or (listing_model_detail.find(' 4') > -1)):
+            widebody = 1
+
+        if  (((model_detail.find('gts') > -1 ) or (listing_model_detail.find('gts') > -1)) and \
+            ((model_detail.find('911') > -1 ) or (listing_model_detail.find('911') > -1) or (model_detail.find('carrera') > -1 ) or (listing_model_detail.find('carrera') > -1))):
+            widebody = 1
+
+        if  (model_number.find('991') > -1) and ((model_detail.find(' 4') > -1 ) or (listing_model_detail.find(' 4') > -1)):
+            widebody = 1
+
+        if  (model_number.find('991') > -1 ) and ((model_detail.find('rs') > -1 ) or (listing_model_detail.find('rs') > -1)):
+            widebody = 1
+
+
+        if (bs_option_description.find('exterior paint to sample') > -1) or (bs_option_description.find('exterior color to sample') > -1) or \
+           (listing_title.find(' pts') > -1) or (listing_title.find('paint to sample') > -1) or (listing_title.find('color to sample') > -1) or \
+           (listing_description.find(' pts') > -1) or (listing_description.find('paint to sample') > -1) or (listing_description.find('color to sample') > -1):
+            pts = 1
+
+        if (bs_option_description.find('ceramic') > -1) or (bs_option_description.find('pccb') > -1) or \
+           (listing_title.find('pccb') > -1) or (listing_title.find('ceramic') > -1) or \
+           (listing_description.find('pccb') > -1) or (listing_description.find('ceramic') > -1):
+            pccb = 1
+        if vin not in ('', None):
+            if (year in (1948, 1997)) or (listing_year in (1948, 1997)) or (( (year == 1998)or (listing_year == 1998)) and (vin[11] == '3')):
+                air_cooled = 1
+
+        if bs_option_description.find('bucket') > -1:
+            lwb = 1
+
+
+        if (listing_transmission == 'auto') and ((listing_year in (1967, 1981)) or (year in (1967, 1981))):
+            auto_trans = 'Sportomatic'
+        if ((listing_transmission == 'auto'  ) or (bs_option_description.find('tiptronic') > -1)) and ((listing_year in (1989, 2008)) or (year in (1989, 2008))):
+            auto_trans = 'Tiptronic'
+        if ((listing_transmission == 'auto') or (bs_option_description.find('doppelkupplung') > -1)) and ((listing_year >= 2009) or ( year >= 2009)):
+            auto_trans = 'PDK'
+
+        if (listing_model_detail.find('cayenne')>-1) or (model_detail.find('cayenne')>-1):  body_type = 'SUV'
+        if (listing_model_detail.find('boxster')>-1) or (model_detail.find('boxster')>-1): body_type = 'Convertible'
+        if (listing_model_detail.find('cayman')>-1) or (model_detail.find('cayman')>-1): body_type = 'Coupe'
+        if (listing_model_detail.find('panamera')>-1) or (model_detail.find('panamera')>-1): body_type = 'Sedan'
+        if (listing_model_detail.find('macan')>-1) or (model_detail.find('macan')>-1): body_type = 'Crossover'
+        if (listing_model_detail.find('cabrio')>-1) or (model_detail.find('cabrio')>-1): body_type = 'Convertible'
+        if (listing_model_detail.find('cabriolet')>-1) or (model_detail.find('cabriolet')>-1): body_type = 'Convertible'
+        if (listing_model_detail.find('coupe')>-1) or (model_detail.find('coupe')>-1): body_type = 'Copue'
+        #if (listing_model_detail.find(u'coup', )>-1) or (model_detail.find(u'coup')>-1): body_type = 'Copue'
+        if (listing_model_detail.find('roadster')>-1) or (model_detail.find('roadster')>-1): body_type = 'Roadster'
+        if (listing_model_detail.find('spyder')>-1) or (model_detail.find('spyder')>-1): body_type = 'Spyder'
+        if (listing_model_detail.find('speedster')>-1) or (model_detail.find('speedster')>-1): body_type = 'Convertible'
+        if (listing_model_detail.find('targa')>-1) or (model_detail.find('targa')>-1): body_type = 'Targa'
+        if (listing_model_detail.find('gt1')>-1) or (model_detail.find('gt1')>-1): body_type = 'Coupe'
+        if (listing_model_detail.find('gt2')>-1) or (model_detail.find('gt2')>-1): body_type = 'Coupe'
+        if (listing_model_detail.find('gt3')>-1) or (model_detail.find('gt3')>-1): body_type = 'Coupe'
+        if (listing_model_detail.find('gt4')>-1) or (model_detail.find('gt4')>-1): body_type = 'Coupe'
+
+        if (listing_model_detail.find(' gt ')>-1) or (model_detail.find(' gt ')>-1): body_type = 'Coupe'
+
+        if (listing_model_detail.find('america')>-1) or (model_detail.find('america')>-1): body_type = 'Coupe'
+        if (listing_model_detail.find('cup')>-1) or (model_detail.find('cup')>-1): body_type = 'Coupe'
+        if (listing_model_detail.find('914')>-1) or (model_detail.find('914')>-1): body_type = 'Targa'
+        if (listing_model_detail.find('924')>-1) or (model_detail.find('924')>-1): body_type = 'Coupe'
+        if (listing_model_detail.find('928')>-1) or (model_detail.find('928')>-1): body_type = 'Coupe'
+        if (listing_model_detail.find('942')>-1) or (model_detail.find('942')>-1): body_type = 'Coupe'
+        if (listing_model_detail.find('gtr')>-1) or (model_detail.find('gtr')>-1): body_type = 'Coupe'
+
+        if (listing_model_detail.find('944')>-1) or (model_detail.find('944')>-1): body_type = 'Coupe'
+        if (listing_model_detail.find('911')>-1) or (model_detail.find('911')>-1): body_type = 'Coupe'
+
+        if (listing_model_detail.find('959')>-1) or (model_detail.find('959')>-1): body_type = 'Coupe'
+
+        if (listing_model_detail.find('968')>-1) or (model_detail.find('968')>-1): body_type = 'Coupe'
+        if (listing_model_detail.find('912')>-1) or (model_detail.find('912')>-1): body_type = 'Coupe'
+        if (listing_model_detail.find('356')>-1) or (model_detail.find('356')>-1): body_type = 'Coupe'
+
+        if (listing_model_detail.find('718')>-1) or (model_detail.find('718')>-1): body_type = 'Coupe'
+
+        color = listing_color
+
+
+        option_code = ''
+        option_description = ''
+        placeholder = 0
+        producted_usa = 0
+        producted_globally = 0
+        same_counts = 0
+        listing_age = 0
+
+        pcf = {}
+        pcf['longhood'] = longhood
+        pcf['widebody'] = widebody
+        pcf['pts'] = pts
+        pcf['pccb'] = pccb
+        pcf['color'] = color
+        pcf['body_type'] = body_type
+        pcf['air_cooled'] = air_cooled
+        #pcf['gap_to_msrp'] = gap_to_msrp
+        pcf['listing_age'] = 0
+        pcf['lwb_seats'] = lwb
+        pcf['auto_trans'] = auto_trans
+        pcf['option_code'] = ''
+        pcf['option_description'] = ''
+        pcf['placeholder'] = 0
+        pcf['model_number'] = model_number
+
+        return pcf
     def getBSinfo(self, vin):
         data = {}
         url = 'https://admin.porschedealer.com/reports/build_sheets/print.php?vin=%s'
@@ -817,3 +1006,316 @@ class BuildSheetView(generics.ListAPIView):
             #print(option)
 
         return data
+
+    def parsing_vin(self, vin):
+        if len(vin) < 17:
+            pass
+        else:
+            model_number = ''
+            model_detail = ''
+            year = 0
+
+            if (vin[3] == 'Z') and (vin[4] == 'Z') and (vin[5] == 'Z') : # RoW car
+                model_number = vin[6] + vin[7] + vin[11]
+
+                if model_number == '911': model_detail = '911 G-model'
+                if model_number == '924': model_detail = '924'
+                if model_number == '928': model_detail = '928'
+                if model_number == '930': model_detail = '930 G-model Turbo'
+                if model_number == '931': model_detail = '924 Turbo'
+                if model_number == '937': model_detail = '924 Carrera GT'
+                if model_number == '944': model_detail = '944'
+                if model_number == '951': model_detail = '944 Turbo'
+                if model_number == '95B': model_detail = 'Macan'
+                if model_number == '964': model_detail = '911 1989-1994'
+                if model_number == '968': model_detail = '968'
+                if model_number == '970':
+                    if vin[9] == '9':
+                        model_number = '970.1'
+                        model_detail = 'Panamera 2009-2016'
+                    elif vin[9] == 'A':
+                        model_number = '970.1'
+                        model_detail = 'Panamera 2009-2016'
+                    elif vin[9] == 'B':
+                        model_number = '970.1'
+                        model_detail = 'Panamera 2009-2016'
+                    elif vin[9] == 'C':
+                        model_number = '970.1'
+                        model_detail = 'Panamera 2009-2016'
+                    elif vin[9] == 'D':
+                        model_number = '970.1'
+                        model_detail = 'Panamera 2009-2016'
+                    elif vin[9] == 'E':
+                        model_number = '970.2'
+                        model_detail = 'Panamera 2009-2016'
+                    elif vin[9] == 'F':
+                        model_number = '970.2'
+                        model_detail = 'Panamera 2009-2016'
+                    elif vin[9] == 'G':
+                        model_number = '970.2'
+                        model_detail = 'Panamera 2009-2016'
+
+                if model_number == '971': model_detail = 'Panamera 2016-2023'
+                if model_number == '980': model_detail = 'Carrera GT'
+                if model_number == '981': model_detail = 'Boxster/Cayman 2012-2016'
+                if model_number == '982': model_detail = '718 Boxster/Cayman 2016-2019'
+                if model_number == '986': model_detail = 'Boxster 1996-2004'
+                if model_number == '987':
+                    if vin[9] == '5':
+                        model_number = '987.1'
+                        model_detail = '987 (Boxster/Cayman 2005)'
+                    elif vin[9] == '6':
+                        model_number = '987.1'
+                        model_detail = '987 (Boxster/Cayman 2006)'
+                    elif vin[9] == '7':
+                        model_number = '987.1'
+                        model_detail = '987 (Boxster/Cayman 2007)'
+                    elif vin[9] == '8':
+                        model_number = '987.1'
+                        model_detail = '987 (Boxster/Cayman 2008)'
+                    elif vin[9] == '9':
+                        model_number = '987.2'
+                        model_detail = '987 (Boxster/Cayman 2009)'
+                    elif vin[9] == 'A':
+                        model_number = '987.2'
+                        model_detail = '987 (Boxster/Cayman 2010)'
+                    elif vin[9] == 'B':
+                        model_number = '987.2'
+                        model_detail = '987 (Boxster/Cayman 2011)'
+                    elif vin[9] == 'C':
+                        model_number = '987.2'
+                        model_detail = '987 (Boxster/Cayman 2012)'
+                if model_number == '991':
+                    if vin[9] == 'C':
+                        model_number = '991.1'
+                        model_detail = '911 2012'
+                    elif vin[9] == 'D':
+                        model_number = '991.1'
+                        model_detail = '911 2013'
+                    elif vin[9] == 'E':
+                        model_number = '991.1'
+                        model_detail = '911 2014'
+                    elif vin[9] == 'F':
+                        model_number = '991.1'
+                        model_detail = '911 2015'
+                    elif vin[9] == 'G':
+                        model_number = '991.1'
+                        model_detail = '911 2016'
+                    elif vin[9] == 'H':
+                        model_number = '991.2'
+                        model_detail = '911 2017'
+                    elif vin[9] == 'J':
+                        model_number = '991.2'
+                        model_detail = '911 2018'
+
+                if model_number == '993': model_detail = '911 1993-1997'
+                if model_number == '996': model_detail = '911 1997-2004'
+                if model_number == '997':
+                    if vin[9] == '4':
+                        model_number = '997.1'
+                        model_detail = '991 2004'
+                    elif vin[9] == '5':
+                        model_number = '997.1'
+                        model_detail = '991 2005'
+                    elif vin[9] == '6':
+                        model_number = '997.1'
+                        model_detail = '991 2006'
+                    elif vin[9] == '7':
+                        model_number = '997.1'
+                        model_detail = '991 2007'
+                    elif vin[9] == '8':
+                        model_number = '997.1'
+                        model_detail = '991 2008'
+                    elif vin[9] == '9':
+                        model_number = '997.2'
+                        model_detail = '991 2009'
+                    elif vin[9] == 'A':
+                        model_number = '997.2'
+                        model_detail = '991 2010'
+                    elif vin[9] == 'B':
+                        model_number = '997.2'
+                        model_detail = '991 2011'
+                    elif vin[9] == 'C':
+                        model_number = '997.2'
+                        model_detail = '991 2012'
+                    elif vin[9] == 'D':
+                        model_number = '997.2'
+                        model_detail = '991 2013'
+
+                if model_number == '9PA': model_detail = 'Cayenne 955(2002-2007), 957(2007-2010)'
+                if model_number == '92A':
+                    model_detail = 'Cayenne 958(2010-2017)'
+                    if vin[9] == 'A':
+                        model_number = '958.1'
+                        model_detail = '958 2010'
+                    elif vin[9] == 'B':
+                        model_number = '958.1'
+                        model_detail = '958 2011'
+                    elif vin[9] == 'C':
+                        model_number = '958.1'
+                        model_detail = '958 2012'
+                    elif vin[9] == 'D':
+                        model_number = '958.1'
+                        model_detail = '958 2013'
+                    elif vin[9] == 'E':
+                        model_number = '958.1'
+                        model_detail = '958 2014'
+                    elif vin[9] == 'F':
+                        model_number = '958.2'
+                        model_detail = '958 2015'
+                    elif vin[9] == 'G':
+                        model_number = '958.2'
+                        model_detail = '958 2016'
+                    elif vin[9] == 'H':
+                        model_number = '958.2'
+                        model_detail = '958 2017'
+            else: # US cars
+                model_number = vin[7] + vin[11]
+                if model_number == '11': model_detail = '911 (G-model)'
+                if model_number == '24': model_detail = '924'
+                if model_number == '28': model_detail = '928'
+                if model_number == '30': model_detail = '930 (911 G-model Turbo)'
+                if model_number == '31': model_detail = '924 Turbo'
+                if model_number == '44': model_detail = '944'
+                if model_number == '51': model_detail = '944 Turbo'
+                if model_number == '5B': model_detail = '95B Macan'
+                if model_number == '64': model_detail = '964(911 1989-1994)'
+                if model_number == '68': model_detail = '968'
+                if model_number == '70': model_detail = '970 (Panamera 2009-2016)'
+                if model_number == '71': model_detail = '971 (Panamera 2016-2023)'
+                if model_number == '80': model_detail = '980 (Carrera GT)'
+                if model_number == '81': model_detail = '981 (Boxster/Cayman 2012-2016)'
+                if model_number == '82': model_detail = '982 (718 Boxster/Cayman 2016-2019)'
+                if model_number == '86': model_detail = '986 (Boxster 1996-2004)'
+                if model_number == '87':
+                    if vin[9] == '5':
+                        model_number = '87.1'
+                        model_detail = '987 (Boxster/Cayman 2005)'
+                    elif vin[9] == '6':
+                        model_number = '87.1'
+                        model_detail = '987 (Boxster/Cayman 2006)'
+                    elif vin[9] == '7':
+                        model_number = '87.1'
+                        model_detail = '987 (Boxster/Cayman 2007)'
+                    elif vin[9] == '8':
+                        model_number = '87.1'
+                        model_detail = '987 (Boxster/Cayman 2008)'
+                    elif vin[9] == '9':
+                        model_number = '87.2'
+                        model_detail = '987 (Boxster/Cayman 2009)'
+                    elif vin[9] == 'A':
+                        model_number = '87.2'
+                        model_detail = '987 (Boxster/Cayman 2010)'
+                    elif vin[9] == 'B':
+                        model_number = '87.2'
+                        model_detail = '987 (Boxster/Cayman 2011)'
+                    elif vin[9] == 'C':
+                        model_number = '87.2'
+                        model_detail = '987 (Boxster/Cayman 2012)'
+                if model_number == '91':
+                    if vin[9] == 'C':
+                        model_number = '91.1'
+                        model_detail = '911 2012'
+                    elif vin[9] == 'D':
+                        model_number = '91.1'
+                        model_detail = '911 2013'
+                    elif vin[9] == 'E':
+                        model_number = '91.1'
+                        model_detail = '911 2014'
+                    elif vin[9] == 'F':
+                        model_number = '91.1'
+                        model_detail = '911 2015'
+                    elif vin[9] == 'G':
+                        model_number = '91.1'
+                        model_detail = '911 2016'
+                    elif vin[9] == 'H':
+                        model_number = '91.2'
+                        model_detail = '911 2017'
+                    elif vin[9] == 'J':
+                        model_number = '91.2'
+                        model_detail = '911 2018'
+
+                if model_number == '93': model_detail = '993 (911 1993-1997)'
+                if model_number == '96': model_detail = '996 (911 1997-2004)'
+                if model_number == '97':
+                    if vin[9] == '4':
+                        model_number = '97.1'
+                        model_detail = '991 2004'
+                    elif vin[9] == '5':
+                        model_number = '97.1'
+                        model_detail = '991 2005'
+                    elif vin[9] == '6':
+                        model_number = '97.1'
+                        model_detail = '991 2006'
+                    elif vin[9] == '7':
+                        model_number = '97.1'
+                        model_detail = '991 2007'
+                    elif vin[9] == '8':
+                        model_number = '97.1'
+                        model_detail = '991 2008'
+                    elif vin[9] == '9':
+                        model_number = '97.2'
+                        model_detail = '991 2009'
+                    elif vin[9] == 'A':
+                        model_number = '97.2'
+                        model_detail = '991 2010'
+                    elif vin[9] == 'B':
+                        model_number = '97.2'
+                        model_detail = '991 2011'
+                    elif vin[9] == 'C':
+                        model_number = '97.2'
+                        model_detail = '991 2012'
+                    elif vin[9] == 'D':
+                        model_number = '97.2'
+                        model_detail = '991 2013'
+
+                if model_number == 'PA':
+                    model_detail = 'Cayenne 955(2002-2007), 957(2007-2010)'
+                    model_number = '55'
+                if model_number == '2A':
+                    model_detail = 'Cayenne 958(2010-2017)'
+                    model_number = '58'
+
+                model_number = '9' + model_number
+
+            year_code = vin[9] #year code
+
+            if year_code == '1': year = 2001
+            if year_code == '2': year = 2002
+            if year_code == '3': year = 2003
+            if year_code == '4': year = 2004
+            if year_code == '5': year = 2005
+            if year_code == '6': year = 2006
+            if year_code == '7': year = 2007
+            if year_code == '8': year = 2008
+            if year_code == '9': year = 2009
+            if year_code == 'A': year = 2010
+            if year_code == 'B': year = 2011
+            if year_code == 'C': year = 2012
+            if year_code == 'D': year = 2013
+            if year_code == 'E': year = 2014
+            if year_code == 'F': year = 2015
+            if year_code == 'G': year = 2016
+            if year_code == 'H': year = 2017
+            if year_code == 'J': year = 2018
+            if year_code == 'K': year = 2019
+            if year_code == 'L': year = 2020
+            if year_code == 'M': year = 2021
+            if year_code == 'N': year = 2022
+            if year_code == 'P': year = 2023
+            if year_code == 'R': year = 2024
+            if year_code == 'S': year = 2025
+            if year_code == 'T': year = 2026
+            if year_code == 'V': year = 2027
+            if year_code == 'W': year = 2028
+            if year_code == 'X': year = 2029
+
+            if model_number == '964' or year_code > 2017:
+                year = year - 30
+
+            result = {}
+            result['model_detail'] = model_detail
+            result['model_number'] = model_number
+            result['year'] =  year
+
+            return result
