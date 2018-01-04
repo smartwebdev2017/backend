@@ -720,9 +720,13 @@ class BuildSheetView(generics.ListAPIView):
                 if bsf_option_serializer.is_valid():
                    bsf_option_serializer.save()
 
+                try:
+                    listing_model = re.search('Porsche\s(.*)', bsf.model_detail).group(1)
+                except Exception as e:
+                    listing_model = ''
                 car = Car(vin_code=vin,
                               listing_make=None,
-                              listing_model=None,
+                              listing_model=listing_model,
                               listing_trim=None,
                               listing_model_detail=bsf.model_detail,
                               listing_year=bsf.model_year,
@@ -738,7 +742,7 @@ class BuildSheetView(generics.ListAPIView):
                               listing_interior_color=bsf.interior,
                               listing_transmission=None,
                               listing_transmission_detail=None,
-                              listing_title=bsf.model_detail,
+                              listing_title=str(bsf.model_year) + ' Porsche',
                               listing_url=None,
                               listing_engine_size=None,
                               listing_description='Build Sheet Lookup',
