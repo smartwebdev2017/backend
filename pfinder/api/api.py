@@ -743,7 +743,7 @@ class BuildSheetView(generics.ListAPIView):
                               listing_transmission=None,
                               listing_transmission_detail=None,
                               listing_title=str(bsf.model_year) + ' Porsche' + ' ' + listing_model,
-                              listing_url=None,
+                              listing_url='http://www.pcarfinder.com/#/normal/detail/' + newKey,
                               listing_engine_size=None,
                               listing_description='Build Sheet Lookup',
                               sold_state=1,
