@@ -1016,6 +1016,7 @@ class BuildSheetView(generics.ListAPIView):
         if len(vin) < 17:
             pass
         else:
+            CONST_MODEL_NUMBERS = ['911', '924', '928', '930', '931', '944', '951', '95B', '964', '968', '970.1', '970.2', '971', '980','981', '982', '986', '987.1', '987.2', '991.1', '991.2', '993', '996', '997.1', '997.2', '955', '958.1', '958.2']
             model_number = ''
             model_detail = ''
             year = 0
@@ -1320,7 +1321,11 @@ class BuildSheetView(generics.ListAPIView):
 
             result = {}
             result['model_detail'] = model_detail
-            result['model_number'] = model_number
+            result['model_number'] = ''
             result['year'] =  year
 
+            for m_number in CONST_MODEL_NUMBERS:
+                if model_number == m_number:
+                    result['model_number'] = model_number
+                    break
             return result
