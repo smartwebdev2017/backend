@@ -204,11 +204,11 @@ class CarList(generics.ListAPIView):
         if price_from not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(price__gt=price_from)).distinct()
         if price_to not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(price__lt=price_to)).distinct()
 
-        if pcf_msrp_from not in ('', 'None', 'undefined', None): queryset_list = queryset_list.filter(Q(pcf__gap_to_msrp__gt=pcf_msrp_from)).distinct()
-        if pcf_msrp_to not in ('', 'None', 'undefined', None): queryset_list = queryset_list.filter(Q(pcf__gap_to_msrp__lt=pcf_msrp_to)).distinct()
+        if pcf_msrp_from not in ('', 'None', 'undefined', None): queryset_list = queryset_list.filter(Q(pcf__gap_to_msrp__gte=pcf_msrp_from)).distinct()
+        if pcf_msrp_to not in ('', 'None', 'undefined', None): queryset_list = queryset_list.filter(Q(pcf__gap_to_msrp__lte=pcf_msrp_to)).distinct()
 
-        if bsf_model_year_from not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin__model_year__gt=bsf_model_year_from)).distinct()
-        if bsf_model_year_to not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin__model_year__lt=bsf_model_year_to)).distinct()
+        if bsf_model_year_from not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin__model_year__gte=bsf_model_year_from)).distinct()
+        if bsf_model_year_to not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin__model_year__lte=bsf_model_year_to)).distinct()
 
         #queryset_list = queryset_list.filter(Q(pcf__listing_age__gt=pcf_listing_age_from)).distinct()
         #queryset_list = queryset_list.filter(Q(pcf__listing_age__lt=pcf_listing_age_to)).distinct()
@@ -253,11 +253,11 @@ class CarList(generics.ListAPIView):
 
         if query_description not in ('', 'None', 'undefined', None): queryset_list = queryset_list.filter(Q(listing_description__icontains=query_description)).distinct()
 
-        if mileage_from not in ('', 'None', 'undefined', None): queryset_list = queryset_list.filter(Q(mileage__gt=mileage_from)).distinct()
-        if mileage_to not in ('', 'None', 'undefined', None): queryset_list = queryset_list.filter(Q(mileage__lt=mileage_to)).distinct()
+        if mileage_from not in ('', 'None', 'undefined', None): queryset_list = queryset_list.filter(Q(mileage__gte=mileage_from)).distinct()
+        if mileage_to not in ('', 'None', 'undefined', None): queryset_list = queryset_list.filter(Q(mileage__lte=mileage_to)).distinct()
 
-        if year_from not in ('', 'None', 'undefined', None): queryset_list = queryset_list.filter(Q(listing_year__gt=year_from)).distinct()
-        if year_to not in ('', 'None', 'undefined', None): queryset_list = queryset_list.filter(Q(listing_year__lt=year_to)).distinct()
+        if year_from not in ('', 'None', 'undefined', None): queryset_list = queryset_list.filter(Q(listing_year__gte=year_from)).distinct()
+        if year_to not in ('', 'None', 'undefined', None): queryset_list = queryset_list.filter(Q(listing_year__lte=year_to)).distinct()
 
         if query_model not in ('', 'None', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_model__icontains=query_model)).distinct()
 
