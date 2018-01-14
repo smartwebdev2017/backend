@@ -350,6 +350,9 @@ class CarList(generics.ListAPIView):
                     pass
                 elif query == 'c4':
                     pass
+                elif query == '718':
+                    query = '982'
+                    words.append(query)
 
                 if query.find('longhood') != -1: queryset_list = queryset_list.filter(Q(pcf__longhood__iexact=1)).distinct()
                 elif query.find('widebody') != -1: queryset_list = queryset_list.filter(Q(pcf__widebody__iexact=1)).distinct()
@@ -425,7 +428,7 @@ class CarList(generics.ListAPIView):
             elif direction =='asc':
                 queryset_list = queryset_list.order_by(sort)
         else:
-            queryset_list = queryset_list.order_by('-pcf__id')
+            queryset_list = queryset_list.order_by('-listing_date')
         return queryset_list.filter(pcf__isnull=False)
 
 class CarDetail(generics.ListAPIView):
@@ -528,7 +531,7 @@ class SearchView(generics.ListAPIView):
         PostAuthorCanEditPermission
     ]
     def get_queryset(self, *args, **kwargs):
-        car = {}
+        cars = {}
         bsf = {}
         query = self.request.GET.get('keyword').lower()
 
@@ -615,6 +618,11 @@ class SearchView(generics.ListAPIView):
                 pass
             elif query == 'c4':
                 pass
+            elif query == '718':
+                print('718')
+                cars = cars.filter(
+                        Q(pcf__model_number='982')
+                    ).distinct()
 
 
         return list(chain(cars, bsf))

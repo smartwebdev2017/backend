@@ -51,9 +51,9 @@ bsf_urls = [
     url(r'^$', BuildSheetView.as_view(), name='bsf-detail')
 ]
 
-search_urls = [
-    url(r'^$', SearchView.as_view(), name='search')
-]
+# search_urls = [
+#     url(r'^$', SearchView.as_view(), name='search')
+# ]
 
 pcf_urls = [
     url(r'^$', VincodesView.as_view(), name='vincodes')
@@ -76,7 +76,7 @@ urlpatterns = [
     url(r'^cities', include(cities_urls)),
     url(r'^states', include(states_urls)),
     url(r'^bsf', include(bsf_urls)),
-    url(r'^search', include(search_urls)),
+    #url(r'^search', include(search_urls)),
     url(r'^codes', include(pcf_urls)),
     url(r'^active', include(active_urls)),
     url(r'^inactive', include(inactive_urls)),
