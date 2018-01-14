@@ -185,8 +185,8 @@ class CarList(generics.ListAPIView):
         print(sort)
         print(direction)
 
-        if listing_date_start not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(created__gte=listing_date_start)).distinct()
-        if listing_date_end not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(created__lte=listing_date_end)).distinct()
+        if listing_date_start not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_date__gte=datetime.datetime.strptime(listing_date_start, '%Y-%m-%d'))).distinct()
+        if listing_date_end not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_date__lte=datetime.datetime.strptime(listing_date_end, '%Y-%m-%d'))).distinct()
         if listing_exterior_color not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_exterior_color__icontains=listing_exterior_color)).distinct()
         if listing_interior_color not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_interior_color__icontains=listing_interior_color)).distinct()
         if vin not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin_code__icontains=vin)).distinct()
@@ -742,7 +742,7 @@ class BuildSheetView(generics.ListAPIView):
                               mileage=None,
                               city=None,
                               state=None,
-                              listing_date=datetime.datetime.now().strftime('%m-%d-%Y'),
+                              listing_date=datetime.datetime.now().strftime('%Y-%m-%d'),
                               price=None,
                               cond=None,
                               seller_type='',
