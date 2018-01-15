@@ -185,8 +185,20 @@ class CarList(generics.ListAPIView):
         print(sort)
         print(direction)
 
-        if listing_date_start not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_date__gte=datetime.datetime.strptime(listing_date_start, '%Y-%m-%d'))).distinct()
-        if listing_date_end not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_date__lte=datetime.datetime.strptime(listing_date_end, '%Y-%m-%d'))).distinct()
+        if listing_date_start not in ('', None, 'undefined'):
+            try:
+                start_dt = datetime.datetime.strptime(listing_date_start, '%Y-%m-%d')
+                queryset_list = queryset_list.filter(Q(listing_date__gte=start_dt)).distinct()
+            except Exception as e:
+                pass
+
+        if listing_date_end not in ('', None, 'undefined'):
+            try:
+                end_dt = datetime.datetime.strptime(listing_date_end, '%Y-%m-%d')
+                queryset_list = queryset_list.filter(Q(listing_date__lte=end_dt)).distinct()
+            except Exception as e:
+                pass
+
         if listing_exterior_color not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_exterior_color__icontains=listing_exterior_color)).distinct()
         if listing_interior_color not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_interior_color__icontains=listing_interior_color)).distinct()
         if vin not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin_code__icontains=vin)).distinct()
