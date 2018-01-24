@@ -271,7 +271,7 @@ class CarList(generics.ListAPIView):
         if year_from not in ('', 'None', 'undefined', None): queryset_list = queryset_list.filter(Q(listing_year__gte=year_from)).distinct()
         if year_to not in ('', 'None', 'undefined', None): queryset_list = queryset_list.filter(Q(listing_year__lte=year_to)).distinct()
 
-        if query_model not in ('', 'None', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_model__icontains=query_model)).distinct()
+        if query_model not in ('', 'None', None, 'undefined'): queryset_list = queryset_list.filter(Q(listing_model_detail__icontains=query_model)).distinct()
 
         if query_longhood in ('', 'None', 'undefined', None): pass
         elif query_longhood == 'false': queryset_list = queryset_list.filter(Q(pcf__longhood__iexact=0)).distinct()
