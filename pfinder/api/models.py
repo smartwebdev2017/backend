@@ -102,7 +102,7 @@ class Car(models.Model):
     listing_transmission = models.CharField(max_length=15, null=True, blank=True)
     listing_transmission_detail = models.CharField(max_length=255, null=True, blank=True)
     listing_title = models.CharField(max_length=255, null=True, blank=True)
-    listing_url = models.CharField(max_length=255, null=True, blank=True)
+    listing_url = models.TextField(null=True, blank=True)
     listing_engine_size = models.CharField(max_length=10, null=True, blank=True)
     listing_description = models.TextField(null=True, blank=True)
     sold_state = models.IntegerField(max_length=1, null=True, blank=True)
