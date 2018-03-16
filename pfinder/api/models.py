@@ -110,7 +110,7 @@ class Car(models.Model):
     listing_body_type = models.CharField(max_length=20, null=True, blank=True)
     listing_drivetrain = models.CharField(max_length=10, null=True, blank=True)
     created = models.DateField(max_length=255)
-    updated = models.DateField(max_length=255)
+    updated = models.IntegerField(max_length=1, default = 0)
     vhf = models.ForeignKey(VHF, null=True, blank=True)
     vdf = models.ForeignKey(VDF, null=True, blank=True)
     pcf = models.ForeignKey(PCF, null=True, blank=True)

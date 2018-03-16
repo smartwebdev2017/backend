@@ -384,11 +384,11 @@ class CarList(generics.ListAPIView):
                         Q(listing_model_detail__icontains=query),
                         Q(listing_trim__icontains=query),
                         Q(listing_year__iexact=query),
-                        Q(mileage__iexact=query),
+                        #Q(mileage__iexact=query),
                         Q(city__icontains=query),
                         Q(state__iexact=query),
                         Q(listing_year__iexact=query),
-                        Q(price__iexact=query),
+                        #Q(price__iexact=query),
                         Q(cond__iexact=query),
                         Q(seller_type__iexact=query),
                         Q(listing_exterior_color__iexact=query),
@@ -401,7 +401,7 @@ class CarList(generics.ListAPIView):
                         Q(listing_body_type__icontains=query),
                         Q(listing_drivetrain__iexact=query),
                         #Q(listing_drivetrain__iexact=query),
-                        Q(vin__msrp__iexact=query),
+                        #Q(vin__msrp__iexact=query),
                         Q(vin__warranty_start__icontains=query),
                         Q(vin__model_year__icontains=query),
                         Q(vin__model_detail__iexact=query),
@@ -417,19 +417,19 @@ class CarList(generics.ListAPIView):
                     ]
                     pcf_q_list = [
                         Q(pcf__color__icontains=query),
-                        Q(pcf__gap_to_msrp__iexact=query),
+                        #Q(pcf__gap_to_msrp__iexact=query),
                         Q(pcf__listing_age__iexact=query),
                         Q(pcf__auto_trans__icontains=query),
-                        Q(pcf__placeholder__iexact=query),
-                        Q(pcf__produced_usa__iexact=query),
-                        Q(pcf__produced_globally__iexact=query),
-                        Q(pcf__same_counts__iexact=query)
+                        #Q(pcf__placeholder__iexact=query),
+                        #Q(pcf__produced_usa__iexact=query),
+                        #Q(pcf__produced_globally__iexact=query),
+                        #Q(pcf__same_counts__iexact=query)
                     ]
                     vdf_q_list = [
                         Q(vdf__model_number__icontains=query) |
                         Q(vdf__year__iexact=query) |
-                        Q(vdf__model_detail__icontains=query) |
-                        Q(vdf__region__icontains=query)
+                        Q(vdf__model_detail__icontains=query)
+                        #Q(vdf__region__icontains=query)
                     ]
                     queryset_list = queryset_list.filter(reduce(operator.or_, q_list)).distinct()
         if sort not in ('', 'None', 'undefined', None):
@@ -764,7 +764,7 @@ class BuildSheetView(generics.ListAPIView):
                               listing_transmission=None,
                               listing_transmission_detail=None,
                               listing_title=str(bsf.model_year) + ' Porsche' + ' ' + listing_model,
-                              listing_url='http://www.pcarfinder.com/#/normal/detail/' + newKey,
+                              listing_url='http://www.pcarfinder.com/ID/' + newKey,
                               listing_engine_size=None,
                               listing_description='Build Sheet Lookup',
                               sold_state=1,
@@ -774,7 +774,7 @@ class BuildSheetView(generics.ListAPIView):
                               listing_body_type=None,
                               listing_drivetrain=None,
                               created=datetime.datetime.now().date(),
-                              updated=datetime.datetime.now().date(),
+                              updated=1,
                               active=0)
                 new_car = car.save()
                 data = Car.objects.filter(vin_code=bsf.vin)
