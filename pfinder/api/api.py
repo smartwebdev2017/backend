@@ -217,7 +217,10 @@ class CarList(generics.ListAPIView):
         if price_to not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(price__lt=price_to)).distinct()
 
         if pcf_msrp_from not in ('', 'None', 'undefined', None): queryset_list = queryset_list.filter(Q(pcf__gap_to_msrp__gte=pcf_msrp_from)).distinct()
-        if pcf_msrp_to not in ('', 'None', 'undefined', None): queryset_list = queryset_list.filter(Q(pcf__gap_to_msrp__lte=pcf_msrp_to)).distinct()
+        if pcf_msrp_to not in ('', 'None', 'undefined', None):
+            queryset_list = queryset_list.filter(Q(pcf__gap_to_msrp__lte=pcf_msrp_to)).distinct()
+            if pcf_msrp_from in ('', 'None', 'undefined', None):
+                queryset_list = queryset_list.filter(Q(pcf__gap_to_msrp__gt=0)).distinct()
 
         if bsf_model_year_from not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin__model_year__gte=bsf_model_year_from)).distinct()
         if bsf_model_year_to not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin__model_year__lte=bsf_model_year_to)).distinct()
@@ -242,11 +245,11 @@ class CarList(generics.ListAPIView):
         if bsf_exterior not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin__color__icontains=bsf_exterior)).distinct()
         if bsf_interior not in ('', None, 'undefined'): queryset_list = queryset_list.filter(Q(vin__interior__icontains=bsf_interior)).distinct()
         if bsf_options not in ('', None, 'undefined'):
-            q_option_list = [
-               Q(vin__options__code__icontains=bsf_options),
-               Q(vin__options__value__icontains=bsf_options)
-            ]
-            queryset_list = queryset_list.filter(reduce(operator.or_, q_option_list)).distinct()
+            arr_bsf_options = re.split('; | |, |\*|\n', bsf_options)
+
+            for bsf_option in arr_bsf_options:
+                if bsf_option != '':
+                    queryset_list = queryset_list.filter(Q(vin__options__code__icontains=bsf_option)).distinct()
 
         if bsf_production_month_from not in ('', None, 'undefined'):
             print(int(bsf_production_month_from,10))
