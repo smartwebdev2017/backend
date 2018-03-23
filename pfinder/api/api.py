@@ -249,7 +249,7 @@ class CarList(generics.ListAPIView):
 
             for bsf_option in arr_bsf_options:
                 if bsf_option != '':
-                    queryset_list = queryset_list.filter(Q(vin__options__code__icontains=bsf_option)).distinct()
+                    queryset_list = queryset_list.filter(Q(vin__options__value__icontains=bsf_option)).distinct()
 
         if bsf_production_month_from not in ('', None, 'undefined'):
             print(int(bsf_production_month_from,10))
