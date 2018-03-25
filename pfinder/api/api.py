@@ -317,6 +317,8 @@ class CarList(generics.ListAPIView):
             words = re.split('; | |, |\*|\n', queries)
 
             for query in words:
+                if query == '':
+                    continue
                 if query == 'pumpkin':
                     query = 'Orange'
                     words.append(query)
@@ -372,7 +374,7 @@ class CarList(generics.ListAPIView):
                 if query.find('longhood') != -1: queryset_list = queryset_list.filter(Q(pcf__longhood__iexact=1)).distinct()
                 elif query.find('widebody') != -1: queryset_list = queryset_list.filter(Q(pcf__widebody__iexact=1)).distinct()
                 elif query.find('pts') != -1: queryset_list = queryset_list.filter(Q(pcf__pts__iexact=1)).distinct()
-                elif query.find('pccb') != -1: queryset_list = queryset_list.filter(Q(pcf__pccb__iexact=1)).distinct()
+                #elif query.find('pccb') != -1: queryset_list = queryset_list.filter(Q(pcf__pccb__iexact=1)).distinct()
                 elif query.find('cooled') != -1: queryset_list = queryset_list.filter(Q(pcf__air_cooled__iexact=1)).distinct()
                 elif query.find('lwb') != -1:
                     q_list = [Q(pcf__lwb_seats__iexact=1), Q(listing_title__icontains='lwb')]
@@ -382,39 +384,39 @@ class CarList(generics.ListAPIView):
                     #queryset_list = queryset_list.filter(
                     q_list = [
                         Q(vin_code__icontains=query),
-                        Q(listing_make__icontains=query),
-                        Q(listing_model__icontains=query),
+                        #Q(listing_make__icontains=query),
+                        #Q(listing_model__icontains=query),
                         Q(listing_model_detail__icontains=query),
-                        Q(listing_trim__icontains=query),
+                        #Q(listing_trim__icontains=query),
                         Q(listing_year__iexact=query),
                         #Q(mileage__iexact=query),
-                        Q(city__icontains=query),
-                        Q(state__iexact=query),
+                        #Q(city__icontains=query),
+                        #Q(state__iexact=query),
                         Q(listing_year__iexact=query),
                         #Q(price__iexact=query),
-                        Q(cond__iexact=query),
-                        Q(seller_type__iexact=query),
+                        #Q(cond__iexact=query),
+                        #Q(seller_type__iexact=query),
                         Q(listing_exterior_color__iexact=query),
-                        Q(listing_interior_color__iexact=query),
+                        #Q(listing_interior_color__iexact=query),
                         Q(listing_transmission__iexact=query),
-                        Q(listing_transmission_detail__icontains=query),
+                        #Q(listing_transmission_detail__icontains=query),
                         Q(listing_title__icontains=query),
-                        Q(listing_engine_size__icontains=query),
+                        #Q(listing_engine_size__icontains=query),
                         Q(listing_description__icontains=query),
-                        Q(listing_body_type__icontains=query),
-                        Q(listing_drivetrain__iexact=query),
+                        #Q(listing_body_type__icontains=query),
+                        #Q(listing_drivetrain__iexact=query),
                         #Q(listing_drivetrain__iexact=query),
                         #Q(vin__msrp__iexact=query),
-                        Q(vin__warranty_start__icontains=query),
+                        #Q(vin__warranty_start__icontains=query),
                         Q(vin__model_year__icontains=query),
                         Q(vin__model_detail__iexact=query),
                         Q(vin__color__iexact=query),
-                        Q(vin__production_month__iexact=query),
-                        Q(vin__interior__iexact=query),
+                        #Q(vin__production_month__iexact=query),
+                        #Q(vin__interior__iexact=query),
                         Q(vin__vin__icontains=query),
                         Q(vin__options__value__icontains=query),
                         Q(vin__options__code__icontains=query),
-                        Q(pcf__body_type__icontains=query),
+                        #Q(pcf__body_type__icontains=query),
                         Q(pcf__model_number__icontains=query),
                         Q(pcf__vid__icontains=query),
                     ]
