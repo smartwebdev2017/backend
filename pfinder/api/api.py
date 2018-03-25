@@ -446,6 +446,7 @@ class CarList(generics.ListAPIView):
                 queryset_list = queryset_list.order_by(sort)
         else:
             queryset_list = queryset_list.order_by('-listing_date')
+        print(queryset_list.query)
         return queryset_list.filter(pcf__isnull=False)
 
 class CarDetail(generics.ListAPIView):
