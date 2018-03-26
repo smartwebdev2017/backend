@@ -33,8 +33,10 @@ urlpatterns = [
 
 if settings.DEBUG:
     from django.views.static import serve
+    import debug_toolbar
     urlpatterns += [
         url(r'^(?P<path>favicon\..*)$', serve, {'document_root': settings.STATIC_ROOT}),
         url(r'^%s(?P<path>.*)$' % settings.MEDIA_URL[1:], serve, {'document_root': settings.MEDIA_ROOT}),
         url(r'^%s(?P<path>.*)$' % settings.STATIC_URL[1:], serve, dict(insecure=True)),
+        url(r'^__debug__/', include(debug_toolbar.urls))
     ]
