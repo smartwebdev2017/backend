@@ -392,7 +392,7 @@ class CarList(generics.ListAPIView):
                         #Q(mileage__iexact=query),
                         #Q(city__icontains=query),
                         #Q(state__iexact=query),
-                        Q(listing_year__iexact=query),
+                        #Q(listing_year__iexact=query),
                         #Q(price__iexact=query),
                         #Q(cond__iexact=query),
                         #Q(seller_type__iexact=query),
